@@ -16,10 +16,9 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QApplication, QFrame, QGraphicsView, QHBoxLayout,
-    QLabel, QMenu, QMenuBar, QSizePolicy,
-    QSpacerItem, QSplitter, QTabBar, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QApplication, QGraphicsView, QMenu, QMenuBar,
+    QScrollBar, QSizePolicy, QSplitter, QTabBar,
+    QVBoxLayout, QWidget)
 
 class Ui_Widget(object):
     def setupUi(self, Widget):
@@ -37,7 +36,7 @@ class Ui_Widget(object):
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.menuBar = QMenuBar(Widget)
         self.menuBar.setObjectName(u"menuBar")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.menuBar.sizePolicy().hasHeightForWidth())
@@ -76,15 +75,12 @@ class Ui_Widget(object):
 
         self.tabBar = QTabBar(Widget)
         self.tabBar.setObjectName(u"tabBar")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.tabBar.sizePolicy().hasHeightForWidth())
-        self.tabBar.setSizePolicy(sizePolicy1)
+        sizePolicy.setHeightForWidth(self.tabBar.sizePolicy().hasHeightForWidth())
+        self.tabBar.setSizePolicy(sizePolicy)
         self.tabBar.setMinimumSize(QSize(0, 24))
         self.tabBar.setStyleSheet(u"\n"
 "            QTabBar {\n"
-"                background: #1f1f1f;\n"
+"                background: #292a2b;\n"
 "                border: none;\n"
 "            }\n"
 "            QTabBar::tab {\n"
@@ -105,113 +101,53 @@ class Ui_Widget(object):
 
         self.splitter = QSplitter(Widget)
         self.splitter.setObjectName(u"splitter")
-        self.splitter.setOrientation(Qt.Horizontal)
+        self.splitter.setOrientation(Qt.Orientation.Horizontal)
         self.splitter.setHandleWidth(4)
         self.leftPanel = QWidget(self.splitter)
         self.leftPanel.setObjectName(u"leftPanel")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(1)
-        sizePolicy2.setHeightForWidth(self.leftPanel.sizePolicy().hasHeightForWidth())
-        self.leftPanel.setSizePolicy(sizePolicy2)
-        self.leftPanel.setMinimumSize(QSize(24, 0))
-        self.leftPanel.setMaximumSize(QSize(24, 16777215))
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(1)
+        sizePolicy1.setHeightForWidth(self.leftPanel.sizePolicy().hasHeightForWidth())
+        self.leftPanel.setSizePolicy(sizePolicy1)
+        self.leftPanel.setMinimumSize(QSize(16, 0))
+        self.leftPanel.setMaximumSize(QSize(16, 16777215))
         self.leftPanel.setStyleSheet(u"\n"
 "              background-color: #292a2b;\n"
 "              border-right: 1px solid #1b1b1b;\n"
 "            ")
-        self.verticalLayout_2 = QVBoxLayout(self.leftPanel)
-        self.verticalLayout_2.setSpacing(0)
-        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.topSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout_2.addItem(self.topSpacer)
-
-        self.topMarginHandle = QFrame(self.leftPanel)
-        self.topMarginHandle.setObjectName(u"topMarginHandle")
-        self.topMarginHandle.setMinimumSize(QSize(24, 16))
-        self.topMarginHandle.setMaximumSize(QSize(24, 16))
-        self.topMarginHandle.setFrameShape(QFrame.StyledPanel)
-        self.topMarginHandle.setStyleSheet(u"\n"
-"                    QFrame {\n"
-"                      background-color: #235c96;\n"
-"                      border: 2px solid #50a0f0;\n"
-"                      border-bottom: none;\n"
-"                      border-radius: 4px 4px 0 0;\n"
-"                    }\n"
-"                    QFrame:hover {\n"
-"                      background-color: #2a6db0;\n"
-"                    }\n"
-"                  ")
-        self.horizontalLayout = QHBoxLayout(self.topMarginHandle)
-        self.horizontalLayout.setSpacing(0)
-        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.topHandleIcon = QLabel(self.topMarginHandle)
-        self.topHandleIcon.setObjectName(u"topHandleIcon")
-        self.topHandleIcon.setPixmap(QPixmap())
-        self.topHandleIcon.setScaledContents(True)
-
-        self.horizontalLayout.addWidget(self.topHandleIcon)
-
-
-        self.verticalLayout_2.addWidget(self.topMarginHandle)
-
-        self.selectionArea = QWidget(self.leftPanel)
-        self.selectionArea.setObjectName(u"selectionArea")
-        self.selectionArea.setStyleSheet(u"\n"
-"                    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,\n"
-"                      stop:0 #1f1f1f, stop:0.5 #235c96, stop:1 #1f1f1f);\n"
-"                    border-left: 2px solid #50a0f0;\n"
-"                    border-right: 2px solid #50a0f0;\n"
-"                  ")
-
-        self.verticalLayout_2.addWidget(self.selectionArea)
-
-        self.bottomMarginHandle = QFrame(self.leftPanel)
-        self.bottomMarginHandle.setObjectName(u"bottomMarginHandle")
-        self.bottomMarginHandle.setMinimumSize(QSize(24, 16))
-        self.bottomMarginHandle.setMaximumSize(QSize(24, 16))
-        self.bottomMarginHandle.setFrameShape(QFrame.StyledPanel)
-        self.bottomMarginHandle.setStyleSheet(u"\n"
-"                    QFrame {\n"
-"                      background-color: #235c96;\n"
-"                      border: 2px solid #50a0f0;\n"
-"                      border-top: none;\n"
-"                      border-radius: 0 0 4px 4px;\n"
-"                    }\n"
-"                    QFrame:hover {\n"
-"                      background-color: #2a6db0;\n"
-"                    }\n"
-"                  ")
-        self.horizontalLayout_2 = QHBoxLayout(self.bottomMarginHandle)
-        self.horizontalLayout_2.setSpacing(0)
-        self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.bottomHandleIcon = QLabel(self.bottomMarginHandle)
-        self.bottomHandleIcon.setObjectName(u"bottomHandleIcon")
-        self.bottomHandleIcon.setPixmap(QPixmap())
-        self.bottomHandleIcon.setScaledContents(True)
-
-        self.horizontalLayout_2.addWidget(self.bottomHandleIcon)
-
-
-        self.verticalLayout_2.addWidget(self.bottomMarginHandle)
-
-        self.bottomSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout_2.addItem(self.bottomSpacer)
-
         self.splitter.addWidget(self.leftPanel)
         self.pdfView = QGraphicsView(self.splitter)
         self.pdfView.setObjectName(u"pdfView")
         self.pdfView.setStyleSheet(u"\n"
-"              background-color: white;\n"
+"              background-color: #1f1f1f;\n"
 "              border: none;\n"
 "            ")
         self.splitter.addWidget(self.pdfView)
+        self.rightScrollBar = QScrollBar(self.splitter)
+        self.rightScrollBar.setObjectName(u"rightScrollBar")
+        sizePolicy1.setHeightForWidth(self.rightScrollBar.sizePolicy().hasHeightForWidth())
+        self.rightScrollBar.setSizePolicy(sizePolicy1)
+        self.rightScrollBar.setMinimumSize(QSize(16, 0))
+        self.rightScrollBar.setMaximumSize(QSize(16, 16777215))
+        self.rightScrollBar.setStyleSheet(u"\n"
+"              QScrollBar {\n"
+"                  background: #292a2b;\n"
+"                  width: 16px;\n"
+"              }\n"
+"              QScrollBar::handle {\n"
+"                  background: #404244;\n"
+"                  min-height: 20px;\n"
+"              }\n"
+"              QScrollBar::handle:hover {\n"
+"                  background: #505254;\n"
+"              }\n"
+"              QScrollBar::add-line, QScrollBar::sub-line {\n"
+"                  background: none;\n"
+"              }\n"
+"            ")
+        self.rightScrollBar.setOrientation(Qt.Orientation.Vertical)
+        self.splitter.addWidget(self.rightScrollBar)
 
         self.verticalLayout.addWidget(self.splitter)
 
@@ -231,3 +167,4 @@ class Ui_Widget(object):
         self.actionExport.setText(QCoreApplication.translate("Widget", u"Export", None))
         self.menuFile.setTitle(QCoreApplication.translate("Widget", u"File", None))
     # retranslateUi
+
