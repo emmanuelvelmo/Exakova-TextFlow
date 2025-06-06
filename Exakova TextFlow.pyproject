@@ -1,1 +1,8 @@
-
+{
+    "files": [
+        "widget.py",
+        "form.ui",
+        "ui_form.py",
+        "Exakova TextFlow.pyproject.user"
+    ]
+}
