@@ -1,23 +1,7 @@
-# -*- coding: utf-8 -*-
-
-################################################################################
-## Form generated from reading UI file 'form.ui'
-##
-## Created by: Qt User Interface Compiler version 6.9.1
-##
-## WARNING! All changes made in this file will be lost when recompiling UI file!
-################################################################################
-
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
-    QCursor, QFont, QFontDatabase, QGradient,
-    QIcon, QImage, QKeySequence, QLinearGradient,
-    QPainter, QPalette, QPixmap, QRadialGradient,
-    QTransform)
-from PySide6.QtWidgets import (QApplication, QGraphicsView, QMenu, QMenuBar,
-    QScrollBar, QSizePolicy, QSplitter, QTabBar,
+from PySide6.QtCore import (QCoreApplication, QMetaObject, QSize, QRect, Qt)
+from PySide6.QtGui import QAction
+from PySide6.QtWidgets import (QApplication, QGraphicsView, QHBoxLayout, QLabel,
+    QMenu, QMenuBar, QPushButton, QScrollBar, QSizePolicy, QSplitter, QTabBar,
     QVBoxLayout, QWidget)
 
 class Ui_Widget(object):
@@ -26,145 +10,180 @@ class Ui_Widget(object):
             Widget.setObjectName(u"Widget")
         Widget.resize(800, 600)
         Widget.setStyleSheet(u"background-color: #1f1f1f;")
+
+        # Actions
         self.actionOpen = QAction(Widget)
         self.actionOpen.setObjectName(u"actionOpen")
         self.actionExport = QAction(Widget)
         self.actionExport.setObjectName(u"actionExport")
+        self.actionApply_Margin_to_All_Tabs = QAction(Widget)
+        self.actionApply_Margin_to_All_Tabs.setObjectName(u"actionApply_Margin_to_All_Tabs")
+        self.actionApply_Margin_to_All_Tabs.setCheckable(True)
+        self.actionApply_Margin_to_All_Tabs.setChecked(True)
+
+        # Layout principal
         self.verticalLayout = QVBoxLayout(Widget)
         self.verticalLayout.setSpacing(0)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout.setObjectName(u"verticalLayout")
-        self.menuBar = QMenuBar(Widget)
-        self.menuBar.setObjectName(u"menuBar")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.menuBar.sizePolicy().hasHeightForWidth())
-        self.menuBar.setSizePolicy(sizePolicy)
-        self.menuBar.setMinimumSize(QSize(0, 24))
-        self.menuBar.setStyleSheet(u"\n"
-"            QMenuBar {\n"
-"                background-color: #1f1f1f;\n"
-"                color: white;\n"
-"                border: none;\n"
-"                padding: 2px 0px;\n"
-"            }\n"
-"            QMenuBar::item {\n"
-"                padding: 2px 8px;\n"
-"            }\n"
-"            QMenuBar::item:selected {\n"
-"                background-color: #404244;\n"
-"            }\n"
-"            QMenu {\n"
-"                background-color: #292a2b;\n"
-"                color: white;\n"
-"                border: 1px solid #1b1b1b;\n"
-"            }\n"
-"            QMenu::item {\n"
-"                padding: 4px 24px;\n"
-"            }\n"
-"            QMenu::item:selected {\n"
-"                background-color: #235c96;\n"
-"                border: 1px solid #50a0f0;\n"
-"            }\n"
-"          ")
-        self.menuFile = QMenu(self.menuBar)
-        self.menuFile.setObjectName(u"menuFile")
 
+        # Menú
+        self.menuBar = QMenuBar(Widget)
+        self.menuBar.setMinimumSize(QSize(0, 24))
+        self.menuBar.setMaximumSize(QSize(16777215, 24))
+        self.menuBar.setStyleSheet(u"""
+            QMenuBar {
+                background-color: #1f1f1f;
+                color: white;
+                border: none;
+                padding: 2px 0px;
+            }
+            QMenuBar::item {
+                padding: 2px 8px;
+            }
+            QMenuBar::item:selected {
+                background-color: #404244;
+            }
+            QMenu {
+                background-color: #292a2b;
+                color: white;
+                border: 1px solid #1b1b1b;
+            }
+            QMenu::item {
+                padding: 4px 24px;
+            }
+            QMenu::item:selected {
+                background-color: #235c96;
+                border: 1px solid #50a0f0;
+            }
+        """)
+        self.menuFile = QMenu(self.menuBar)
+        self.menuFile.setTitle(u"File")
+        self.menuSelect = QMenu(self.menuBar)
+        self.menuSelect.setTitle(u"Select")
+
+        self.menuFile.addAction(self.actionOpen)
+        self.menuFile.addAction(self.actionExport)
+        self.menuSelect.addAction(self.actionApply_Margin_to_All_Tabs)
+        self.menuBar.addAction(self.menuFile.menuAction())
+        self.menuBar.addAction(self.menuSelect.menuAction())
         self.verticalLayout.addWidget(self.menuBar)
 
+        # Layout horizontal de pestañas + botones
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setSpacing(1)
+
         self.tabBar = QTabBar(Widget)
-        self.tabBar.setObjectName(u"tabBar")
-        sizePolicy.setHeightForWidth(self.tabBar.sizePolicy().hasHeightForWidth())
-        self.tabBar.setSizePolicy(sizePolicy)
-        self.tabBar.setMinimumSize(QSize(0, 24))
-        self.tabBar.setStyleSheet(u"\n"
-"            QTabBar {\n"
-"                background: #292a2b;\n"
-"                border: none;\n"
-"            }\n"
-"            QTabBar::tab {\n"
-"                background: #292a2b;\n"
-"                color: white;\n"
-"                min-width: 120px;\n"
-"                padding: 3px 6px 3px 6px;\n"
-"                border: 1px solid #1b1b1b;\n"
-"                margin-right: 2px;\n"
-"            }\n"
-"            QTabBar::tab:selected {\n"
-"                background: #235c96;\n"
-"                border-bottom: 1px solid #50a0f0;\n"
-"            }\n"
-"          ")
+        self.tabBar.setMinimumSize(QSize(32, 24))
+        self.tabBar.setMaximumSize(QSize(16777215, 24))
+        self.tabBar.setStyleSheet(u"""
+            QTabBar {
+                background: #292a2b;
+                border: none;
+            }
+            QTabBar::tab {
+                background: #292a2b;
+                color: white;
+                min-width: 60px;
+                padding: 3px 6px;
+                border: 1px solid #1b1b1b;
+                margin-right: 2px;
+            }
+            QTabBar::tab:selected {
+                background: #235c96;
+                border-bottom: 1px solid #50a0f0;
+            }
+        """)
 
-        self.verticalLayout.addWidget(self.tabBar)
+        self.pushButton_1 = QPushButton(u"+", Widget)
+        self.pushButton_1.setMinimumSize(QSize(24, 24))
+        self.pushButton_1.setMaximumSize(QSize(24, 24))
+        self.pushButton_1.setStyleSheet(u"""
+            QPushButton {
+                background-color: #292a2b;
+                color: white;
+                border: 1px solid #1b1b1b;
+                border-radius: 2px;
+            }
+            QPushButton:hover {
+                background-color: #404244;
+            }
+        """)
 
-        self.splitter = QSplitter(Widget)
-        self.splitter.setObjectName(u"splitter")
-        self.splitter.setOrientation(Qt.Orientation.Horizontal)
+        self.pushButton_2 = QPushButton(u"-", Widget)
+        self.pushButton_2.setMinimumSize(QSize(24, 24))
+        self.pushButton_2.setMaximumSize(QSize(24, 24))
+        self.pushButton_2.setStyleSheet(u"""
+            QPushButton {
+                background-color: #292a2b;
+                color: white;
+                border: 1px solid #1b1b1b;
+                border-radius: 2px;
+            }
+            QPushButton:hover {
+                background-color: #404244;
+            }
+        """)
+
+        self.horizontalLayout.addWidget(self.tabBar)
+        self.horizontalLayout.addWidget(self.pushButton_1)
+        self.horizontalLayout.addWidget(self.pushButton_2)
+        self.verticalLayout.addLayout(self.horizontalLayout)
+
+        # Splitter central
+        self.splitter = QSplitter(Qt.Horizontal)
         self.splitter.setHandleWidth(4)
-        self.leftPanel = QWidget(self.splitter)
-        self.leftPanel.setObjectName(u"leftPanel")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(1)
-        sizePolicy1.setHeightForWidth(self.leftPanel.sizePolicy().hasHeightForWidth())
-        self.leftPanel.setSizePolicy(sizePolicy1)
+
+        # Panel izquierdo
+        self.leftPanel = QWidget()
         self.leftPanel.setMinimumSize(QSize(16, 0))
         self.leftPanel.setMaximumSize(QSize(16, 16777215))
-        self.leftPanel.setStyleSheet(u"\n"
-"              background-color: #292a2b;\n"
-"              border-right: 1px solid #1b1b1b;\n"
-"            ")
+        self.leftPanel.setStyleSheet(u"background-color: #292a2b; border-right: 1px solid #1b1b1b;")
+
+        self.label_1 = QLabel(u"\u25B6", self.leftPanel)
+        self.label_1.setGeometry(QRect(0, 0, 16, 16))
+        self.label_1.setStyleSheet(u"color: white; background-color: #235c96; border: 1px solid #50a0f0; border-radius: 2px;")
+
+        self.label_2 = QLabel(u"\u25B6", self.leftPanel)
+        self.label_2.setGeometry(QRect(0, 584, 16, 16))
+        self.label_2.setStyleSheet(u"color: white; background-color: #235c96; border: 1px solid #50a0f0; border-radius: 2px;")
+
         self.splitter.addWidget(self.leftPanel)
-        self.pdfView = QGraphicsView(self.splitter)
-        self.pdfView.setObjectName(u"pdfView")
-        self.pdfView.setStyleSheet(u"\n"
-"              background-color: #1f1f1f;\n"
-"              border: none;\n"
-"            ")
+
+        # Visor PDF
+        self.pdfView = QGraphicsView()
+        self.pdfView.setStyleSheet(u"background-color: #1f1f1f; border: none;")
         self.splitter.addWidget(self.pdfView)
-        self.rightScrollBar = QScrollBar(self.splitter)
-        self.rightScrollBar.setObjectName(u"rightScrollBar")
-        sizePolicy1.setHeightForWidth(self.rightScrollBar.sizePolicy().hasHeightForWidth())
-        self.rightScrollBar.setSizePolicy(sizePolicy1)
-        self.rightScrollBar.setMinimumSize(QSize(16, 0))
-        self.rightScrollBar.setMaximumSize(QSize(16, 16777215))
-        self.rightScrollBar.setStyleSheet(u"\n"
-"              QScrollBar {\n"
-"                  background: #292a2b;\n"
-"                  width: 16px;\n"
-"              }\n"
-"              QScrollBar::handle {\n"
-"                  background: #404244;\n"
-"                  min-height: 20px;\n"
-"              }\n"
-"              QScrollBar::handle:hover {\n"
-"                  background: #505254;\n"
-"              }\n"
-"              QScrollBar::add-line, QScrollBar::sub-line {\n"
-"                  background: none;\n"
-"              }\n"
-"            ")
-        self.rightScrollBar.setOrientation(Qt.Orientation.Vertical)
-        self.splitter.addWidget(self.rightScrollBar)
+
+        # Scroll vertical
+        self.verticalScrollBar = QScrollBar()
+        self.verticalScrollBar.setOrientation(Qt.Vertical)
+        self.verticalScrollBar.setMinimumSize(QSize(16, 0))
+        self.verticalScrollBar.setMaximumSize(QSize(16, 16777215))
+        self.verticalScrollBar.setStyleSheet(u"""
+            QScrollBar {
+                background: #292a2b;
+                width: 16px;
+            }
+            QScrollBar::handle {
+                background: #404244;
+                min-height: 20px;
+            }
+            QScrollBar::handle:hover {
+                background: #505254;
+            }
+            QScrollBar::add-line, QScrollBar::sub-line {
+                background: none;
+            }
+        """)
+        self.splitter.addWidget(self.verticalScrollBar)
 
         self.verticalLayout.addWidget(self.splitter)
 
-
-        self.menuBar.addAction(self.menuFile.menuAction())
-        self.menuFile.addAction(self.actionOpen)
-        self.menuFile.addAction(self.actionExport)
-
         self.retranslateUi(Widget)
-
         QMetaObject.connectSlotsByName(Widget)
-    # setupUi
 
     def retranslateUi(self, Widget):
         Widget.setWindowTitle(QCoreApplication.translate("Widget", u"Exakova TextFlow", None))
         self.actionOpen.setText(QCoreApplication.translate("Widget", u"Open", None))
         self.actionExport.setText(QCoreApplication.translate("Widget", u"Export", None))
-        self.menuFile.setTitle(QCoreApplication.translate("Widget", u"File", None))
-    # retranslateUi
-
+        self.actionApply_Margin_to_All_Tabs.setText(QCoreApplication.translate("Widget", u"Apply Margin to All Tabs", None))
