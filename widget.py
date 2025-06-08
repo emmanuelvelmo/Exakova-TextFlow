@@ -1,9 +1,10 @@
 import sys
 import os
 from PySide6.QtWidgets import (QApplication, QWidget, QFileDialog,
-                              QGraphicsScene, QGraphicsView)
+                              QGraphicsScene, QGraphicsView, QGraphicsPixmapItem,
+                              QTabBar, QPushButton)
 from PySide6.QtGui import QImage, QPixmap, QPainter, QMouseEvent
-from PySide6.QtCore import Qt, QPoint, QLibraryInfo
+from PySide6.QtCore import Qt, QPoint, QLibraryInfo, QRectF, QTimer
 import fitz  # PyMuPDF
 from ui_form import Ui_Widget
 
@@ -16,127 +17,169 @@ class PDFViewer(QWidget):
         # Variables de estado
         self.current_file = None
         self.doc = None
-        self.dragging_label = None
-        self.label_1_pos = QPoint(0, 0)
-        self.label_2_pos = QPoint(0, self.ui.leftPanel.height() - 16)
+        self.docs = {}
+        self.page_items = []
+        self.page_spacing = 10
 
         # Configuración inicial
         self.setup_ui()
         self.setup_scrollbars()
         self.setup_pdf_view()
-        self.setup_label_drag()
+        self.setup_tab_bar()
 
     def setup_ui(self):
-        """Configuración inicial de la interfaz"""
         self.ui.actionOpen.triggered.connect(self.open_pdf)
         self.ui.actionExport.triggered.connect(self.export_pdf)
 
-        # Ya no conectamos los botones pushButton y pushButton_2 a nada
-        # self.ui.pushButton.clicked.connect(self.add_tab)
-        # self.ui.pushButton_2.clicked.connect(self.remove_tab)
+    def setup_tab_bar(self):
+        self.ui.tabBar.tabCloseRequested.connect(self.close_tab)
+        self.ui.tabBar.currentChanged.connect(self.tab_changed)
 
-        # Posicionar labels inicialmente
-        self.ui.label_1.move(self.label_1_pos)
-        self.ui.label_2.move(self.label_2_pos)
+        style = """
+            QTabBar::close-button {
+                subcontrol-origin: padding;
+                subcontrol-position: right;
+                width: 16px;
+                height: 16px;
+                margin-right: 2px;
+            }
+            QTabBar::close-button:hover {
+                background: #505254;
+                border-radius: 2px;
+            }
+        """
+        self.ui.tabBar.setStyleSheet(self.ui.tabBar.styleSheet() + style)
+
+    def tab_changed(self, index):
+        if index >= 0 and index in self.docs:
+            self.doc = self.docs[index]
+            self.current_file = self.doc.name
+            self.display_pdf_pages()
+            self.adjust_scrollbar()
+            self.center_first_page()
+
+    def center_first_page(self):
+        if not self.page_items:
+            return
+
+        QTimer.singleShot(50, lambda: self.ui.pdfView.fitInView(
+            self.page_items[0],
+            Qt.KeepAspectRatio
+        ))
+
+    def close_tab(self, index):
+        if index in self.docs:
+            self.docs[index].close()
+            del self.docs[index]
+
+        self.ui.tabBar.removeTab(index)
+
+        if self.ui.tabBar.count() == 0:
+            self.clear_pdf_view()
+            self.current_file = None
+            self.doc = None
 
     def setup_scrollbars(self):
-        """Configura la sincronización entre scrollbars"""
-        self.ui.verticalScrollBar.valueChanged.connect(
-            lambda v: self.ui.pdfView.verticalScrollBar().setValue(v))
+        self.ui.verticalScrollBar.valueChanged.connect(self.scroll_pdf_view)
         self.ui.pdfView.verticalScrollBar().valueChanged.connect(
             lambda v: self.ui.verticalScrollBar.setValue(v))
         self.ui.pdfView.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.ui.pdfView.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+    def scroll_pdf_view(self, value):
+        self.ui.pdfView.verticalScrollBar().setValue(value)
 
     def setup_pdf_view(self):
-        """Configuración inicial del visor PDF"""
         self.scene = QGraphicsScene()
         self.ui.pdfView.setScene(self.scene)
         self.ui.pdfView.setRenderHints(
             QPainter.Antialiasing |
             QPainter.SmoothPixmapTransform |
             QPainter.TextAntialiasing)
+        self.ui.pdfView.setAlignment(Qt.AlignCenter)
 
-    def setup_label_drag(self):
-        """Configura el arrastre de los labels"""
-        self.ui.label_1.installEventFilter(self)
-        self.ui.label_2.installEventFilter(self)
-
-    def eventFilter(self, source, event):
-        """Maneja el arrastre de los labels"""
-        if event.type() == QMouseEvent.MouseButtonPress:
-            if source in [self.ui.label_1, self.ui.label_2]:
-                self.dragging_label = source
-                return True
-
-        elif event.type() == QMouseEvent.MouseMove and self.dragging_label:
-            y_pos = event.pos().y()
-            panel_height = self.ui.leftPanel.height()
-
-            if self.dragging_label == self.ui.label_1:
-                max_y = self.ui.label_2.y() - self.ui.label_1.height()
-                y_pos = max(0, min(y_pos, max_y))
-                self.label_1_pos.setY(y_pos)
-            else:  # label_2
-                min_y = self.ui.label_1.y() + self.ui.label_1.height()
-                y_pos = max(min_y, min(y_pos, panel_height - self.ui.label_2.height()))
-                self.label_2_pos.setY(y_pos)
-
-            self.dragging_label.move(self.dragging_label.x(), y_pos)
-            return True
-
-        elif event.type() == QMouseEvent.MouseButtonRelease:
-            self.dragging_label = None
-            return True
-
-        return super().eventFilter(source, event)
+    def clear_pdf_view(self):
+        self.scene.clear()
+        self.page_items = []
+        self.ui.verticalScrollBar.setVisible(False)
 
     def open_pdf(self):
-        """Abre diálogo para seleccionar archivo PDF"""
-        file_path, _ = QFileDialog.getOpenFileName(
-            self, "Abrir PDF", "", "PDF Files (*.pdf)")
+        file_paths, _ = QFileDialog.getOpenFileNames(
+            self, "Abrir PDF(s)", "", "PDF Files (*.pdf)")
 
-        if file_path:
-            self.load_pdf(file_path)
+        if file_paths:
+            for file_path in file_paths:
+                self.load_pdf(file_path)
 
     def load_pdf(self, file_path):
-        """Carga y muestra el PDF seleccionado"""
         try:
-            if self.doc:
-                self.doc.close()
+            doc = fitz.open(file_path)
+            tab_index = self.ui.tabBar.addTab(os.path.basename(file_path))
+            self.docs[tab_index] = doc
 
+            # Configurar botón de cierre con ❌
+            close_button = QPushButton("❌")
+            close_button.setStyleSheet("""
+                QPushButton {
+                    color: white;
+                    border: none;
+                    padding: 0px;
+                    font-size: 10px;
+                }
+                QPushButton:hover {
+                    background: #505254;
+                    border-radius: 2px;
+                }
+            """)
+            close_button.setFixedSize(16, 16)
+            self.ui.tabBar.setTabButton(tab_index, QTabBar.RightSide, close_button)
+
+            self.ui.tabBar.setCurrentIndex(tab_index)
+            self.doc = doc
             self.current_file = file_path
-            self.doc = fitz.open(file_path)
-            self.display_pdf_page(0)
+            self.display_pdf_pages()
             self.adjust_scrollbar()
+            self.center_first_page()
 
         except Exception as e:
             print(f"Error al cargar PDF: {e}")
 
-    def display_pdf_page(self, page_num):
-        """Muestra una página específica del PDF"""
+    def display_pdf_pages(self):
         if not self.doc:
             return
 
-        page = self.doc.load_page(page_num)
-        pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
-        image = QImage(
-            pix.samples,
-            pix.width,
-            pix.height,
-            pix.stride,
-            QImage.Format_RGB888)
+        self.clear_pdf_view()
+        y_pos = 0
 
-        self.scene.clear()
-        self.scene.addPixmap(QPixmap.fromImage(image))
-        self.ui.pdfView.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
+        for page_num in range(len(self.doc)):
+            page = self.doc.load_page(page_num)
+            pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+            image = QImage(
+                pix.samples,
+                pix.width,
+                pix.height,
+                pix.stride,
+                QImage.Format_RGB888)
+
+            pixmap = QPixmap.fromImage(image)
+            item = QGraphicsPixmapItem(pixmap)
+            item.setPos(0, y_pos)
+            self.scene.addItem(item)
+            self.page_items.append(item)
+
+            y_pos += pixmap.height() + self.page_spacing
+
+        if self.page_items:
+            total_height = y_pos - self.page_spacing
+            self.scene.setSceneRect(QRectF(0, 0, self.page_items[0].pixmap().width(), total_height))
 
     def adjust_scrollbar(self):
-        """Ajusta la scrollbar derecha según el contenido del PDF"""
-        if not self.doc:
+        if not self.doc or not self.page_items:
+            self.ui.verticalScrollBar.setVisible(False)
             return
 
         view_height = self.ui.pdfView.viewport().height()
-        content_height = self.scene.itemsBoundingRect().height()
+        content_height = self.scene.sceneRect().height()
         needs_scrollbar = content_height > view_height
 
         self.ui.verticalScrollBar.setVisible(needs_scrollbar)
@@ -147,27 +190,48 @@ class PDFViewer(QWidget):
             self.ui.verticalScrollBar.setPageStep(pdf_scrollbar.pageStep())
             self.ui.verticalScrollBar.setSingleStep(pdf_scrollbar.singleStep())
 
+            visible_ratio = view_height / content_height
+            handle_size = max(20, int(self.ui.verticalScrollBar.height() * visible_ratio))
+            self.ui.verticalScrollBar.setStyleSheet(f"""
+                QScrollBar {{
+                    background: #292a2b;
+                    width: 16px;
+                }}
+                QScrollBar::handle {{
+                    background: #404244;
+                    min-height: {handle_size}px;
+                    border-radius: 2px;
+                }}
+                QScrollBar::handle:hover {{
+                    background: #505254;
+                }}
+                QScrollBar::add-line, QScrollBar::sub-line {{
+                    background: none;
+                    border: none;
+                }}
+                QScrollBar::add-page, QScrollBar::sub-page {{
+                    background: #292a2b;
+                }}
+            """)
+
     def export_pdf(self):
-        """Exporta el PDF actual (placeholder)"""
         if not self.current_file:
             return
         print(f"Exportando {self.current_file}...")
 
     def resizeEvent(self, event):
-        """Maneja el redimensionamiento de la ventana"""
         super().resizeEvent(event)
         self.adjust_scrollbar()
-        if self.doc:
-            self.ui.pdfView.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
-
-        # Actualizar posición de label_2 al redimensionar
-        self.label_2_pos.setY(self.ui.leftPanel.height() - 16)
-        self.ui.label_2.move(self.label_2_pos)
+        if self.doc and self.page_items:
+            view_width = self.ui.pdfView.viewport().width()
+            for item in self.page_items:
+                if item.pixmap().width() > view_width:
+                    self.ui.pdfView.fitInView(item, Qt.KeepAspectRatio)
+                    break
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    # Configuración necesaria para PyMuPDF
     if hasattr(sys, 'frozen'):
         os.environ["PATH"] += os.pathsep + QLibraryInfo.location(QLibraryInfo.BinariesPath)
 
