@@ -1,17 +1,15 @@
 import sys
 import os
-from PySide6.QtWidgets import (QApplication, QWidget, QFileDialog,
-                              QGraphicsScene, QGraphicsView, QGraphicsPixmapItem,
-                              QTabBar, QPushButton)
-from PySide6.QtGui import QImage, QPixmap, QPainter, QMouseEvent
-from PySide6.QtCore import Qt, QPoint, QLibraryInfo, QRectF, QTimer
-import fitz  # PyMuPDF
-from ui_form import Ui_Widget
+import PySide6.QtWidgets
+import PySide6.QtGui
+import PySide6.QtCore
+import ui_form
+import fitz
 
-class PDFViewer(QWidget):
+class PDFViewer(PySide6.QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.ui = Ui_Widget()
+        self.ui = ui_form.Ui_Widget()
         self.ui.setupUi(self)
 
         # Variables de estado
@@ -30,6 +28,17 @@ class PDFViewer(QWidget):
     def setup_ui(self):
         self.ui.actionOpen.triggered.connect(self.open_pdf)
         self.ui.actionExport.triggered.connect(self.export_pdf)
+        self.ui.actionApply_Margin_to_All_Tabs.triggered.connect(self.toggle_margin_action)
+
+    def toggle_margin_action(self):
+        current_text = self.ui.actionApply_Margin_to_All_Tabs.text()
+        if "✔" in current_text:
+            self.ui.actionApply_Margin_to_All_Tabs.setText("Apply Margin to All Tabs")
+        else:
+            self.ui.actionApply_Margin_to_All_Tabs.setText("Apply Margin to All Tabs")
+
+        # Aquí puedes agregar la lógica para aplicar/remover los márgenes
+        print(f"Apply Margin to All Tabs: {'✔' in current_text}")
 
     def setup_tab_bar(self):
         self.ui.tabBar.tabCloseRequested.connect(self.close_tab)
@@ -63,9 +72,9 @@ class PDFViewer(QWidget):
         if not self.page_items:
             return
 
-        QTimer.singleShot(50, lambda: self.ui.pdfView.fitInView(
+        PySide6.QtCore.QTimer.singleShot(50, lambda: self.ui.pdfView.fitInView(
             self.page_items[0],
-            Qt.KeepAspectRatio
+            PySide6.QtCore.Qt.KeepAspectRatio
         ))
 
     def close_tab(self, index):
@@ -84,20 +93,20 @@ class PDFViewer(QWidget):
         self.ui.verticalScrollBar.valueChanged.connect(self.scroll_pdf_view)
         self.ui.pdfView.verticalScrollBar().valueChanged.connect(
             lambda v: self.ui.verticalScrollBar.setValue(v))
-        self.ui.pdfView.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.ui.pdfView.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.ui.pdfView.setVerticalScrollBarPolicy(PySide6.QtCore.Qt.ScrollBarAlwaysOff)
+        self.ui.pdfView.setHorizontalScrollBarPolicy(PySide6.QtCore.Qt.ScrollBarAlwaysOff)
 
     def scroll_pdf_view(self, value):
         self.ui.pdfView.verticalScrollBar().setValue(value)
 
     def setup_pdf_view(self):
-        self.scene = QGraphicsScene()
+        self.scene = PySide6.QtWidgets.QGraphicsScene()
         self.ui.pdfView.setScene(self.scene)
         self.ui.pdfView.setRenderHints(
-            QPainter.Antialiasing |
-            QPainter.SmoothPixmapTransform |
-            QPainter.TextAntialiasing)
-        self.ui.pdfView.setAlignment(Qt.AlignCenter)
+            PySide6.QtGui.QPainter.Antialiasing |
+            PySide6.QtGui.QPainter.SmoothPixmapTransform |
+            PySide6.QtGui.QPainter.TextAntialiasing)
+        self.ui.pdfView.setAlignment(PySide6.QtCore.Qt.AlignCenter)
 
     def clear_pdf_view(self):
         self.scene.clear()
@@ -105,7 +114,7 @@ class PDFViewer(QWidget):
         self.ui.verticalScrollBar.setVisible(False)
 
     def open_pdf(self):
-        file_paths, _ = QFileDialog.getOpenFileNames(
+        file_paths, _ = PySide6.QtWidgets.QFileDialog.getOpenFileNames(
             self, "Abrir PDF(s)", "", "PDF Files (*.pdf)")
 
         if file_paths:
@@ -119,7 +128,7 @@ class PDFViewer(QWidget):
             self.docs[tab_index] = doc
 
             # Configurar botón de cierre con ❌
-            close_button = QPushButton("❌")
+            close_button = PySide6.QtWidgets.QPushButton("❌")
             close_button.setStyleSheet("""
                 QPushButton {
                     color: white;
@@ -133,7 +142,7 @@ class PDFViewer(QWidget):
                 }
             """)
             close_button.setFixedSize(16, 16)
-            self.ui.tabBar.setTabButton(tab_index, QTabBar.RightSide, close_button)
+            self.ui.tabBar.setTabButton(tab_index, PySide6.QtWidgets.QTabBar.RightSide, close_button)
 
             self.ui.tabBar.setCurrentIndex(tab_index)
             self.doc = doc
@@ -155,15 +164,15 @@ class PDFViewer(QWidget):
         for page_num in range(len(self.doc)):
             page = self.doc.load_page(page_num)
             pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
-            image = QImage(
+            image = PySide6.QtGui.QImage(
                 pix.samples,
                 pix.width,
                 pix.height,
                 pix.stride,
-                QImage.Format_RGB888)
+                PySide6.QtGui.QImage.Format_RGB888)
 
-            pixmap = QPixmap.fromImage(image)
-            item = QGraphicsPixmapItem(pixmap)
+            pixmap = PySide6.QtGui.QPixmap.fromImage(image)
+            item = PySide6.QtWidgets.QGraphicsPixmapItem(pixmap)
             item.setPos(0, y_pos)
             self.scene.addItem(item)
             self.page_items.append(item)
@@ -172,7 +181,7 @@ class PDFViewer(QWidget):
 
         if self.page_items:
             total_height = y_pos - self.page_spacing
-            self.scene.setSceneRect(QRectF(0, 0, self.page_items[0].pixmap().width(), total_height))
+            self.scene.setSceneRect(PySide6.QtCore.QRectF(0, 0, self.page_items[0].pixmap().width(), total_height))
 
     def adjust_scrollbar(self):
         if not self.doc or not self.page_items:
@@ -227,14 +236,14 @@ class PDFViewer(QWidget):
             view_width = self.ui.pdfView.viewport().width()
             for item in self.page_items:
                 if item.pixmap().width() > view_width:
-                    self.ui.pdfView.fitInView(item, Qt.KeepAspectRatio)
+                    self.ui.pdfView.fitInView(item, PySide6.QtCore.Qt.KeepAspectRatio)
                     break
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
+    app = PySide6.QtWidgets.QApplication(sys.argv)
 
     if hasattr(sys, 'frozen'):
-        os.environ["PATH"] += os.pathsep + QLibraryInfo.location(QLibraryInfo.BinariesPath)
+        os.environ["PATH"] += os.pathsep + PySide6.QtCore.QLibraryInfo.location(PySide6.QtCore.QLibraryInfo.BinariesPath)
 
     viewer = PDFViewer()
     viewer.show()
