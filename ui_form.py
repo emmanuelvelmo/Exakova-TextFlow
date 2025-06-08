@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (QApplication, QGraphicsView, QHBoxLayout, QLabel,
     QMenu, QMenuBar, QPushButton, QScrollBar, QSizePolicy, QSplitter, QTabBar,
     QVBoxLayout, QWidget)
 
+
 class Ui_Widget(object):
     def setupUi(self, Widget):
         if not Widget.objectName():
@@ -30,26 +31,22 @@ class Ui_Widget(object):
         self.menuBar = QMenuBar(Widget)
         self.menuBar.setMinimumSize(QSize(0, 20))
         self.menuBar.setMaximumSize(QSize(16777215, 20))
-        self.menuBar.setNativeMenuBar(False)  # Esto es clave para evitar el comportamiento nativo
+        self.menuBar.setNativeMenuBar(False)
         self.menuBar.setStyleSheet(u"""
-            /* Estilo del menú bar */
             QMenuBar {
                 background-color: #1f1f1f;
                 color: white;
             }
 
-            /* Estilo del menú bar al pasar el cursor */
             QMenuBar::item {
                 padding: 2px 8px;
                 background-color: transparent;
-                border-radius: 0px;
             }
 
             QMenuBar::item:selected {
                 background-color: #404244;
             }
 
-            /* Estilo de los submenús */
             QMenu {
                 background-color: #292a2b;
                 color: white;
@@ -57,63 +54,68 @@ class Ui_Widget(object):
                 padding: 0px;
             }
 
-            /* Estilo de las acciones */
             QMenu::item {
                 padding: 4px 24px 4px 24px;
                 background-color: transparent;
             }
 
-            /* Estilo de las acciones al pasar el cursor */
             QMenu::item:selected {
                 background-color: #235c96;
                 border: 1px solid #50a0f0;
-                padding: 4px 24px 4px 23px;
-            }
-
-            /* Estilo del indicador de checkbox */
-            QMenu::indicator {
-                width: 13px;
-                height: 13px;
-                left: 5px;
-            }
-
-            QMenu::indicator:unchecked {
-                background-color: #292a2b;
-                border: 1px solid #505254;
-            }
-
-            QMenu::indicator:checked {
-                background-color: #292a2b;
-                border: 1px solid #505254;
-                image: url(:/qss_icons/rc/checkbox_checked.png);
-            }
-
-            QMenu::indicator:checked:disabled {
-                image: url(:/qss_icons/rc/checkbox_checked_disabled.png);
-            }
-
-            /* Sombra para los submenús */
-            QMenu {
-                box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+                padding-left: 23px;
             }
         """)
 
+        # Menú File
         self.menuFile = QMenu(self.menuBar)
         self.menuFile.setTitle(u"File")
-        self.menuSelect = QMenu(self.menuBar)
-        self.menuSelect.setTitle(u"Select")
-
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionExport)
+
+        # Menú Select
+        self.menuSelect = QMenu(self.menuBar)
+        self.menuSelect.setTitle(u"Select")
+        self.menuSelect.setStyleSheet(u"""
+            QMenu {
+                background-color: #292a2b;
+                color: white;
+                border: 1px solid #1b1b1b;
+            }
+
+            QMenu::item {
+                padding: 4px 24px 4px 12px;
+                background-color: transparent;
+            }
+
+            QMenu::item:selected {
+                background-color: #235c96;
+                border: 1px solid #50a0f0;
+                padding-left: 11px;
+            }
+
+            QMenu::indicator {
+                width: 12px;
+                height: 12px;
+                background-color: #292a2b;
+                border: 1px solid #505254;
+                left: 4px;
+            }
+
+            QMenu::indicator:checked {
+                background-color: #404244;
+                border: 1px solid #505254;
+            }
+        """)
+
         self.menuSelect.addAction(self.actionApply_Margin_to_All_Tabs)
+
+        # Añadir a la barra
         self.menuBar.addAction(self.menuFile.menuAction())
         self.menuBar.addAction(self.menuSelect.menuAction())
         self.verticalLayout.addWidget(self.menuBar)
 
-        # Resto del código permanece igual...
         # TabBar
         self.tabBar = QTabBar(Widget)
-        self.tabBar.setObjectName(u"tabBar")
         self.tabBar.setMinimumSize(QSize(0, 24))
         self.tabBar.setMaximumSize(QSize(16777215, 24))
         self.tabBar.setTabsClosable(True)
@@ -148,47 +150,33 @@ class Ui_Widget(object):
 
         # Splitter central
         self.splitter = QSplitter(Qt.Horizontal)
-        self.splitter.setObjectName(u"splitter")
         self.splitter.setHandleWidth(4)
 
-        # Panel izquierdo (16px de ancho)
+        # Panel izquierdo
         self.leftPanel = QWidget()
-        self.leftPanel.setObjectName(u"leftPanel")
         self.leftPanel.setMinimumSize(QSize(16, 0))
         self.leftPanel.setMaximumSize(QSize(16, 16777215))
         self.leftPanel.setStyleSheet(u"background-color: #292a2b;")
 
-        # Label 1 (rectángulo azul 16x8)
         self.label_1 = QLabel(self.leftPanel)
-        self.label_1.setObjectName(u"label_1")
         self.label_1.setGeometry(QRect(0, 0, 16, 6))
-        self.label_1.setStyleSheet(u"""
-            background-color: #235c96;
-            border: none;
-        """)
+        self.label_1.setStyleSheet(u"background-color: #235c96; border: none;")
 
-        # Label 2 (rectángulo azul 16x8)
         self.label_2 = QLabel(self.leftPanel)
-        self.label_2.setObjectName(u"label_2")
         self.label_2.setGeometry(QRect(0, 584, 16, 6))
-        self.label_2.setStyleSheet(u"""
-            background-color: #235c96;
-            border: none;
-        """)
+        self.label_2.setStyleSheet(u"background-color: #235c96; border: none;")
 
         self.splitter.addWidget(self.leftPanel)
 
-        # Visor PDF (sin scroll horizontal)
+        # Visor PDF
         self.pdfView = QGraphicsView()
-        self.pdfView.setObjectName(u"pdfView")
         self.pdfView.setStyleSheet(u"background-color: #1f1f1f; border: none;")
         self.pdfView.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.pdfView.setAlignment(Qt.AlignCenter)
         self.splitter.addWidget(self.pdfView)
 
-        # Scroll vertical (inicialmente oculto)
+        # Scroll vertical
         self.verticalScrollBar = QScrollBar()
-        self.verticalScrollBar.setObjectName(u"verticalScrollBar")
         self.verticalScrollBar.setOrientation(Qt.Vertical)
         self.verticalScrollBar.setMinimumSize(QSize(16, 0))
         self.verticalScrollBar.setMaximumSize(QSize(16, 16777215))
@@ -227,3 +215,14 @@ class Ui_Widget(object):
         self.actionApply_Margin_to_All_Tabs.setText(QCoreApplication.translate("Widget", u"Apply Margin to All Tabs", None))
         self.menuFile.setTitle(QCoreApplication.translate("Widget", u"File", None))
         self.menuSelect.setTitle(QCoreApplication.translate("Widget", u"Select", None))
+
+
+# Lanzador
+if __name__ == "__main__":
+    import sys
+    app = QApplication(sys.argv)
+    widget = QWidget()
+    ui = Ui_Widget()
+    ui.setupUi(widget)
+    widget.show()
+    sys.exit(app.exec())

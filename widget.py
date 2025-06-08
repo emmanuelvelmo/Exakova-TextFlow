@@ -48,6 +48,7 @@ class PDFViewer(QWidget):
                 border-radius: 2px;
             }
         """
+
         self.ui.tabBar.setStyleSheet(self.ui.tabBar.styleSheet() + style)
 
     def tab_changed(self, index):
