@@ -2,39 +2,41 @@ import PySide6.QtCore # Módulo para funcionalidades básicas de Qt
 import PySide6.QtGui # Módulo para componentes gráficos
 import PySide6.QtWidgets # Módulo para widgets de UI
 
+# Clase principal para la interfaz de usuario
 class Ui_Widget(object):
     def setupUi(self, Widget):
-        # Configuración inicial de la ventana principal
+        # Configuración de la ventana principal
         Widget.resize(800, 600) # Establece tamaño inicial de la ventana (ancho, alto)
         Widget.setStyleSheet(u"background-color: #1f1f1f;") # Fondo oscuro para la ventana
+        Widget.setWindowTitle("Exakova TextFlow") # Texto del título de ventana
 
         # Creación de acciones (items de menú)
-        self.actionOpen = PySide6.QtGui.QAction(Widget) # Acción para abrir archivos
-        self.actionOpen.setObjectName(u"actionOpen") # Identificador único para la acción
+        self.accion_abrir = PySide6.QtGui.QAction(Widget) # Acción para abrir archivos
+        self.accion_abrir.setText("Open") # Texto de la acción
 
-        self.actionExport = PySide6.QtGui.QAction(Widget) # Acción para exportar
-        self.actionExport.setObjectName(u"actionExport")
+        self.accion_exportar = PySide6.QtGui.QAction(Widget) # Acción para exportar
+        self.accion_exportar.setText("Export") # Texto de la acción
 
-        self.actionApply_Margin_to_All_Tabs = PySide6.QtGui.QAction(Widget) # Acción para márgenes
-        self.actionApply_Margin_to_All_Tabs.setObjectName(u"actionApply_Margin_to_All_Tabs")
-        self.actionApply_Margin_to_All_Tabs.setCheckable(True) # Convertir en toggle
-        self.actionApply_Margin_to_All_Tabs.setChecked(True) # Activar por defecto
+        self.accion_aplicar_margen_todas_pestanas = PySide6.QtGui.QAction(Widget) # Acción para aplicar márgenes
+        self.accion_aplicar_margen_todas_pestanas.setCheckable(True) # Convertir en toggle
+        self.accion_aplicar_margen_todas_pestanas.setChecked(True) # Activar por defecto
+        self.accion_aplicar_margen_todas_pestanas.setText("Apply Margins to All Tabs") # Texto de la acción
 
-        self.actionAbout = PySide6.QtGui.QAction(Widget) # Acción para información
-        self.actionAbout.setObjectName(u"actionAbout")
+        self.accion_acerca_de = PySide6.QtGui.QAction(Widget) # Acción para información
+        self.accion_acerca_de.setText("About Exakova TextFlow") # Texto de la acción
 
         # Configuración del layout principal (organización vertical)
-        self.verticalLayout = PySide6.QtWidgets.QVBoxLayout(Widget) # Layout vertical
-        self.verticalLayout.setSpacing(0) # Sin espacio entre widgets
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0) # Sin márgenes
+        self.layout_vertical = PySide6.QtWidgets.QVBoxLayout(Widget) # Layout vertical
+        self.layout_vertical.setSpacing(0) # Sin espacio entre widgets
+        self.layout_vertical.setContentsMargins(0, 0, 0, 0) # Sin márgenes
 
         # Configuración de la barra de menú
-        self.menuBar = PySide6.QtWidgets.QMenuBar(Widget) # Crear barra de menú
-        self.menuBar.setMinimumSize(PySide6.QtCore.QSize(0, 20)) # Altura mínima
-        self.menuBar.setMaximumSize(PySide6.QtCore.QSize(16777215, 20)) # Altura fija
-        self.menuBar.setNativeMenuBar(False) # Usar menú de Qt, no del sistema
+        self.barra_menu = PySide6.QtWidgets.QMenuBar(Widget) # Crear barra de menú
+        self.barra_menu.setMinimumSize(PySide6.QtCore.QSize(0, 20)) # Altura mínima
+        self.barra_menu.setMaximumSize(PySide6.QtCore.QSize(16777215, 20)) # Altura fija
+        self.barra_menu.setNativeMenuBar(False) # Usar menú de Qt, no del sistema
         # Estilo CSS para la barra de menú
-        self.menuBar.setStyleSheet(u"""
+        self.barra_menu.setStyleSheet(u"""
             QMenuBar
             {
                 background-color: #1f1f1f;
@@ -75,16 +77,16 @@ class Ui_Widget(object):
         """)
 
         # Menú Archivo (File)
-        self.menuFile = PySide6.QtWidgets.QMenu(self.menuBar) # Crear menú File
-        self.menuFile.setTitle(u"File") # Título del menú
-        self.menuFile.addAction(self.actionOpen) # Añadir acción Abrir
-        self.menuFile.addAction(self.actionExport) # Añadir acción Exportar
+        self.menu_archivo = PySide6.QtWidgets.QMenu(self.barra_menu) # Crear menú Archivo
+        self.menu_archivo.setTitle("File") # Título del menú
+        self.menu_archivo.addAction(self.accion_abrir) # Añadir acción "Abrir"
+        self.menu_archivo.addAction(self.accion_exportar) # Añadir acción "Exportar"
 
         # Menú Selección (Select)
-        self.menuSelect = PySide6.QtWidgets.QMenu(self.menuBar) # Crear menú Select
-        self.menuSelect.setTitle(u"Select") # Título del menú
+        self.menu_seleccion = PySide6.QtWidgets.QMenu(self.barra_menu) # Crear menú Selección
+        self.menu_seleccion.setTitle("Select") # Título del menú
         # Estilo específico para este menú
-        self.menuSelect.setStyleSheet(u"""
+        self.menu_seleccion.setStyleSheet(u"""
             QMenu
             {
                 background-color: #292a2b;
@@ -116,36 +118,36 @@ class Ui_Widget(object):
 
             QMenu::indicator:checked
             {
-                background-color: #404244;
+                background-color: #2c73ba;
                 border: 1px solid #505254;
             }
         """)
-        self.menuSelect.addAction(self.actionApply_Margin_to_All_Tabs) # Añadir acción
+
+        self.menu_seleccion.addAction(self.accion_aplicar_margen_todas_pestanas) # Añadir acción "Aplicar Margen a Todas las Pestañas"
 
         # Menú Ayuda (Help)
-        self.menuHelp = PySide6.QtWidgets.QMenu(self.menuBar) # Crear menú Help
-        self.menuHelp.setTitle(u"Help") # Título del menú
-        self.menuHelp.addAction(self.actionAbout) # Añadir acción Acerca de
+        self.menu_ayuda = PySide6.QtWidgets.QMenu(self.barra_menu) # Crear menú Ayuda
+        self.menu_ayuda.setTitle("Help") # Título del menú
+        self.menu_ayuda.addAction(self.accion_acerca_de) # Añadir acción "Acerca de"
 
         # Añadir menús a la barra de menú
-        self.menuBar.addAction(self.menuFile.menuAction()) # Añadir menú File
-        self.menuBar.addAction(self.menuSelect.menuAction()) # Añadir menú Select
-        self.menuBar.addAction(self.menuHelp.menuAction()) # Añadir menú Help
+        self.barra_menu.addAction(self.menu_archivo.menuAction()) # Añadir menú "Archivo"
+        self.barra_menu.addAction(self.menu_seleccion.menuAction()) # Añadir menú "Selección"
+        self.barra_menu.addAction(self.menu_ayuda.menuAction()) # Añadir menú "Ayuda"
 
-        self.verticalLayout.addWidget(self.menuBar) # Añadir barra de menú al layout
+        self.layout_vertical.addWidget(self.barra_menu) # Añadir barra de menú al layout
 
         # Configuración de la barra de pestañas
-        self.tabBar = PySide6.QtWidgets.QTabBar(Widget) # Crear barra de pestañas
-        self.tabBar.setMinimumSize(PySide6.QtCore.QSize(0, 24)) # Altura mínima
-        self.tabBar.setMaximumSize(PySide6.QtCore.QSize(16777215, 24)) # Altura fija
-        self.tabBar.setTabsClosable(True) # Mostrar botón para cerrar pestañas
-        self.tabBar.setMovable(True) # Permitir reordenar pestañas
+        self.barra_pestanas = PySide6.QtWidgets.QTabBar(Widget) # Crear barra de pestañas
+        self.barra_pestanas.setMinimumSize(PySide6.QtCore.QSize(0, 24)) # Altura mínima
+        self.barra_pestanas.setMaximumSize(PySide6.QtCore.QSize(16777215, 24)) # Altura fija
+        self.barra_pestanas.setTabsClosable(True) # Mostrar botón para cerrar pestañas
+        self.barra_pestanas.setMovable(True) # Permitir reordenar pestañas
         # Estilo para la barra de pestañas
-        self.tabBar.setStyleSheet(u"""
+        self.barra_pestanas.setStyleSheet(u"""
             QTabBar
             {
                 background: #292a2b;
-                border: none;
             }
 
             QTabBar::tab
@@ -176,45 +178,50 @@ class Ui_Widget(object):
             }
         """)
 
-        self.verticalLayout.addWidget(self.tabBar) # Añadir barra de pestañas al layout
+        self.layout_vertical.addWidget(self.barra_pestanas) # Añadir barra de pestañas al layout
 
-        # Configuración del área central dividida (splitter)
-        self.splitter = PySide6.QtWidgets.QSplitter(PySide6.QtCore.Qt.Horizontal) # Split horizontal
-        self.splitter.setHandleWidth(4) # Ancho del divisor
+        # Configuración del área central con layout horizontal
+        self.layout_horizontal = PySide6.QtWidgets.QHBoxLayout() # Layout horizontal
+        self.layout_horizontal.setSpacing(0) # Sin espacio entre widgets
+        self.layout_horizontal.setContentsMargins(0, 0, 0, 0) # Sin márgenes
 
         # Panel izquierdo (barra lateral)
-        self.leftPanel = PySide6.QtWidgets.QWidget() # Widget para el panel
-        self.leftPanel.setMinimumSize(PySide6.QtCore.QSize(16, 0)) # Ancho mínimo
-        self.leftPanel.setMaximumSize(PySide6.QtCore.QSize(16, 16777215)) # Ancho fijo
-        self.leftPanel.setStyleSheet(u"background-color: #292a2b;") # Color de fondo
+        self.panel_izquierdo = PySide6.QtWidgets.QWidget() # Widget para el panel
+        self.panel_izquierdo.setMinimumSize(PySide6.QtCore.QSize(16, 16)) # Ancho mínimo
+        self.panel_izquierdo.setMaximumSize(PySide6.QtCore.QSize(16, 16777215)) # Ancho máximo
+        self.panel_izquierdo.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Fixed, PySide6.QtWidgets.QSizePolicy.Expanding) # Política de tamaño
+        self.panel_izquierdo.setStyleSheet(u"background-color: #292a2b;") # Color de fondo
 
-        # Marcadores decorativos en el panel izquierdo
-        self.label_1 = PySide6.QtWidgets.QLabel(self.leftPanel) # Primer marcador
-        self.label_1.setGeometry(PySide6.QtCore.QRect(0, 0, 16, 6)) # Posición y tamaño
-        self.label_1.setStyleSheet(u"background-color: #235c96; border: none;") # Estilo
+        # Marcadores en el panel izquierdo
+        self.etiqueta_1 = PySide6.QtWidgets.QLabel(self.panel_izquierdo) # Primer marcador
+        self.etiqueta_1.setGeometry(PySide6.QtCore.QRect(0, 0, 16, 6)) # Posición y tamaño (arriba)
+        self.etiqueta_1.setStyleSheet(u"background-color: #235c96; border: none;") # Estilo
+        self.etiqueta_1.setCursor(PySide6.QtGui.QCursor(PySide6.QtCore.Qt.PointingHandCursor)) # Cursor personalizado
 
-        self.label_2 = PySide6.QtWidgets.QLabel(self.leftPanel) # Segundo marcador
-        self.label_2.setGeometry(PySide6.QtCore.QRect(0, 0, 16, 6)) # Posición y tamaño
-        self.label_2.setStyleSheet(u"background-color: #235c96; border: none;") # Estilo
+        self.etiqueta_2 = PySide6.QtWidgets.QLabel(self.panel_izquierdo) # Segundo marcador
+        self.etiqueta_2.setGeometry(PySide6.QtCore.QRect(0, 6, 16, 6)) # Posición y tamaño (abajo)
+        self.etiqueta_2.setStyleSheet(u"background-color: #235c96; border: none;") # Estilo
+        self.etiqueta_2.setCursor(PySide6.QtGui.QCursor(PySide6.QtCore.Qt.PointingHandCursor)) # Cursor personalizado
 
-        self.splitter.addWidget(self.leftPanel) # Añadir panel izquierdo al splitter
+        self.layout_horizontal.addWidget(self.panel_izquierdo) # Añadir panel izquierdo al layout
 
-        # Visor PDF (área central)
-        self.pdfView = PySide6.QtWidgets.QGraphicsView() # Crear visor PDF
-        self.pdfView.setStyleSheet(u"background-color: #1f1f1f; border: none;") # Estilo
-        self.pdfView.setHorizontalScrollBarPolicy(PySide6.QtCore.Qt.ScrollBarAlwaysOff) # Ocultar scroll horizontal
-        self.pdfView.setAlignment(PySide6.QtCore.Qt.AlignCenter) # Centrar contenido
+        # Visor PDF
+        self.visor_pdf = PySide6.QtWidgets.QGraphicsView() # Crear visor PDF
+        self.visor_pdf.setStyleSheet(u"background-color: #1f1f1f; border: none;") # Estilo
+        self.visor_pdf.setAlignment(PySide6.QtCore.Qt.AlignCenter) # Centrar contenido
+        self.visor_pdf.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Expanding, PySide6.QtWidgets.QSizePolicy.Expanding) # Política de tamaño
 
-        self.splitter.addWidget(self.pdfView) # Añadir visor PDF al splitter
+        self.layout_horizontal.addWidget(self.visor_pdf) # Añadir visor PDF al layout
 
         # Scroll vertical (barra derecha)
-        self.verticalScrollBar = PySide6.QtWidgets.QScrollBar() # Crear scrollbar
-        self.verticalScrollBar.setOrientation(PySide6.QtCore.Qt.Vertical) # Orientación vertical
-        self.verticalScrollBar.setMinimumSize(PySide6.QtCore.QSize(16, 0)) # Ancho mínimo
-        self.verticalScrollBar.setMaximumSize(PySide6.QtCore.QSize(16, 16777215)) # Ancho fijo
-        self.verticalScrollBar.setVisible(False) # Ocultar inicialmente
+        self.barra_desplazamiento_vertical = PySide6.QtWidgets.QScrollBar() # Crear scrollbar
+        self.barra_desplazamiento_vertical.setOrientation(PySide6.QtCore.Qt.Vertical) # Orientación vertical
+        self.barra_desplazamiento_vertical.setMinimumSize(PySide6.QtCore.QSize(16, 0)) # Ancho mínimo
+        self.barra_desplazamiento_vertical.setMaximumSize(PySide6.QtCore.QSize(16, 16777215)) # Ancho máximo
+        self.barra_desplazamiento_vertical.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Fixed, PySide6.QtWidgets.QSizePolicy.Expanding) # Política de tamaño
+        self.barra_desplazamiento_vertical.setVisible(False) # Ocultar inicialmente
         # Estilo para la scrollbar
-        self.verticalScrollBar.setStyleSheet(u"""
+        self.barra_desplazamiento_vertical.setStyleSheet(u"""
             QScrollBar
             {
                 background: #292a2b;
@@ -238,29 +245,12 @@ class Ui_Widget(object):
             }
         """)
 
-        self.splitter.addWidget(self.verticalScrollBar) # Añadir scrollbar al splitter
-        self.verticalLayout.addWidget(self.splitter) # Añadir splitter al layout principal
+        self.layout_horizontal.addWidget(self.barra_desplazamiento_vertical) # Añadir scrollbar al layout
 
-        self.retranslateUi(Widget) # Configurar textos traducibles
+        # Crear un widget contenedor para el layout horizontal
+        self.widget_central = PySide6.QtWidgets.QWidget() # Widget contenedor
+        self.widget_central.setLayout(self.layout_horizontal) # Asignar el layout horizontal al contenedor
+
+        self.layout_vertical.addWidget(self.widget_central) # Añadir contenedor al layout principal
+
         PySide6.QtCore.QMetaObject.connectSlotsByName(Widget) # Conectar slots automáticamente
-
-    def retranslateUi(self, Widget):
-        # Configuración de todos los textos traducibles
-        Widget.setWindowTitle(PySide6.QtCore.QCoreApplication.translate("Widget", u"Exakova TextFlow", None))
-        self.actionOpen.setText(PySide6.QtCore.QCoreApplication.translate("Widget", u"Open", None))
-        self.actionExport.setText(PySide6.QtCore.QCoreApplication.translate("Widget", u"Export", None))
-        self.actionApply_Margin_to_All_Tabs.setText(PySide6.QtCore.QCoreApplication.translate("Widget", u"Apply Margin to All Tabs", None))
-        self.actionAbout.setText(PySide6.QtCore.QCoreApplication.translate("Widget", u"About Exakova TextFlow", None))
-        self.menuFile.setTitle(PySide6.QtCore.QCoreApplication.translate("Widget", u"File", None))
-        self.menuSelect.setTitle(PySide6.QtCore.QCoreApplication.translate("Widget", u"Select", None))
-        self.menuHelp.setTitle(PySide6.QtCore.QCoreApplication.translate("Widget", u"Help", None))
-
-# Punto de entrada principal
-if __name__ == "__main__":
-    import sys
-    app = PySide6.QtWidgets.QApplication(sys.argv) # Crear aplicación Qt
-    widget = PySide6.QtWidgets.QWidget() # Crear widget principal
-    ui = Ui_Widget() # Crear instancia de la interfaz
-    ui.setupUi(widget) # Configurar la interfaz
-    widget.show() # Mostrar la ventana
-    sys.exit(app.exec()) # Ejecutar el bucle principal
