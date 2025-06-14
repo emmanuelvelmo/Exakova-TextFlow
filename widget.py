@@ -27,13 +27,12 @@ ui.visor_pdf.setRenderHints(PySide6.QtGui.QPainter.Antialiasing | PySide6.QtGui.
 ui.visor_pdf.setAlignment(PySide6.QtCore.Qt.AlignCenter) # Centra el contenido en la vista
 
 # Configurar barras de desplazamiento
-ui.visor_pdf.setVerticalScrollBarPolicy(PySide6.QtCore.Qt.ScrollBarAlwaysOff) # Oculta scrollbar vertical interno
+ui.visor_pdf.setVerticalScrollBarPolicy(PySide6.QtCore.Qt.ScrollBarAsNeeded) # Muestra scrollbar vertical cuando sea necesario
 ui.visor_pdf.setHorizontalScrollBarPolicy(PySide6.QtCore.Qt.ScrollBarAlwaysOff) # Oculta scrollbar horizontal interno
-ui.barra_desplazamiento_vertical.setVisible(False) # Inicialmente oculta la barra de desplazamiento externa
 
 # Configurar estilos de la barra de tabs
 tab_close_button_style = """
-    Qbarra_pestanas::close-button
+    QTabBar::close-button
     {
         subcontrol-origin: padding;
         subcontrol-position: right;
@@ -42,7 +41,7 @@ tab_close_button_style = """
         margin-right: 2px;
     }
 
-    Qbarra_pestanas::close-button:hover
+    QTabBar::close-button:hover
     {
         background: #505254;
         border-radius: 2px;
@@ -67,7 +66,6 @@ def cambiar_pestana(index):
         doc = docs[index] # Cambia al documento del tab seleccionado
         current_file = doc.name # Actualiza el archivo actual
         mostrar_paginas_pdf() # Muestra las páginas del nuevo documento
-        ajustar_barra_desplazamiento() # Ajusta la barra de desplazamiento
         centrar_primera_pagina() # Centra la primera página
 
 # Cierra una pestaña abierta y gestiona los recursos asociados
@@ -86,10 +84,6 @@ def cerrar_pestana(index):
         current_file = None # Reinicia el archivo actual
         doc = None # Reinicia el documento actual
 
-# Sincroniza el desplazamiento vertical de la vista PDF con la barra de desplazamiento personalizada
-def desplazar_vista_pdf(value):
-    ui.visor_pdf.barra_desplazamiento_vertical().setValue(value) # Sincroniza el desplazamiento de la vista PDF
-
 # Centra la primera página del documento en la vista
 def centrar_primera_pagina():
     if not page_items: # Si no hay páginas cargadas
@@ -103,64 +97,21 @@ def limpiar_vista_pdf():
 
     scene.clear() # Limpia todos los elementos de la escena
     page_items = [] # Reinicia la lista de páginas
-    ui.barra_desplazamiento_vertical.setVisible(False) # Oculta la barra de desplazamiento
 
-# Ajusta la visibilidad y configuración de la barra de desplazamiento vertical
-def ajustar_barra_desplazamiento():
+# Ajusta el contenido del visor PDF
+def ajustar_contenido():
     if not doc or not page_items: # Si no hay documento o páginas
-        ui.barra_desplazamiento_vertical.setVisible(False) # Oculta la barra de desplazamiento
-
         return # Sale de la función
 
     view_height = ui.visor_pdf.viewport().height() # Obtiene altura del viewport
     content_height = scene.sceneRect().height() # Obtiene altura del contenido
-    needs_scrollbar = content_height > view_height # Determina si necesita scrollbar
 
-    ui.barra_desplazamiento_vertical.setVisible(needs_scrollbar) # Muestra/oculta scrollbar según necesidad
-
-    if needs_scrollbar: # Si necesita scrollbar
-        pdf_scrollbar = ui.visor_pdf.barra_desplazamiento_vertical() # Obtiene scrollbar interno
-        ui.barra_desplazamiento_vertical.setRange(0, pdf_scrollbar.maximum()) # Establece rango del scrollbar externo
-        ui.barra_desplazamiento_vertical.setPageStep(pdf_scrollbar.pageStep()) # Sincroniza paso de página
-        ui.barra_desplazamiento_vertical.setSingleStep(pdf_scrollbar.singleStep()) # Sincroniza paso simple
-
-        visible_ratio = view_height / content_height # Calcula proporción visible
-        handle_size = max(20, int(ui.barra_desplazamiento_vertical.height() * visible_ratio)) # Calcula tamaño del handle
-        ui.barra_desplazamiento_vertical.setStyleSheet(f"""
-            QScrollBar
-            {{
-                background: #292a2b;
-                width: 16px;
-            }}
-
-            QScrollBar::handle
-            {{
-                background: #404244;
-                min-height: {handle_size}px;
-                border-radius: 2px;
-            }}
-
-            QScrollBar::handle:hover
-            {{
-                background: #505254;
-            }}
-
-            QScrollBar::add-line, QScrollBar::sub-line
-            {{
-                background: none;
-                border: none;
-            }}
-
-            QScrollBar::add-page, QScrollBar::sub-page
-            {{
-                background: #292a2b;
-            }}
-        """) # Aplica estilos personalizados al scrollbar
+    if page_items:
+        total_height = sum(item.pixmap().height() for item in page_items) + (len(page_items) - 1) * page_spacing
+        scene.setSceneRect(PySide6.QtCore.QRectF(0, 0, page_items[0].pixmap().width(), total_height))
 
 # Maneja el evento de redimensionamiento de la ventana
 def evento_redimensionamiento(event):
-    ajustar_barra_desplazamiento()
-
     if doc and page_items:
         # Ajustar todas las páginas al nuevo tamaño
         viewport_height = ui.visor_pdf.viewport().height()
@@ -205,7 +156,6 @@ def cargar_pdf(file_path):
         doc = new_doc # Actualiza el documento actual
         current_file = file_path # Actualiza el archivo actual
         mostrar_paginas_pdf() # Muestra las páginas del PDF
-        ajustar_barra_desplazamiento() # Ajusta la barra de desplazamiento
         centrar_primera_pagina() # Centra la primera página
 
     except Exception as e:
@@ -333,9 +283,6 @@ ui.accion_exportar.triggered.connect(exportar_txt) # Conecta la acción "Exporta
 # Conectar eventos de tabs
 ui.barra_pestanas.tabCloseRequested.connect(cerrar_pestana) # Conecta la señal de cierre de tab
 ui.barra_pestanas.currentChanged.connect(cambiar_pestana) # Conecta la señal de cambio de tab
-
-# Conectar eventos de scrollbars
-ui.barra_desplazamiento_vertical.valueChanged.connect(desplazar_vista_pdf) # Conecta cambios en scrollbar externo
 
 # Conectar evento de redimensionamiento
 original_resize_event = vent_princ.resizeEvent # Guarda el evento original de redimensionamiento

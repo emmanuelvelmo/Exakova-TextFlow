@@ -46,9 +46,6 @@
        <height>20</height>
       </size>
      </property>
-     <property name="nativeMenuBar">
-      <bool>false</bool>
-     </property>
      <property name="styleSheet">
       <string notr="true">QMenuBar
 {
@@ -88,6 +85,9 @@ QMenu::item:selected
     padding-left: 23px;
 }</string>
      </property>
+     <property name="nativeMenuBar">
+      <bool>false</bool>
+     </property>
      <widget class="QMenu" name="menuFile">
       <property name="title">
        <string>File</string>
@@ -96,9 +96,6 @@ QMenu::item:selected
       <addaction name="actionExport"/>
      </widget>
      <widget class="QMenu" name="menuSelect">
-      <property name="title">
-       <string>Select</string>
-      </property>
       <property name="styleSheet">
        <string notr="true">QMenu
 {
@@ -135,6 +132,9 @@ QMenu::indicator:checked
     border: 1px solid #505254;
 }</string>
       </property>
+      <property name="title">
+       <string>Select</string>
+      </property>
       <addaction name="actionApply_Margin_to_All_Tabs"/>
      </widget>
      <widget class="QMenu" name="menuHelp">
@@ -149,7 +149,7 @@ QMenu::indicator:checked
     </widget>
    </item>
    <item>
-    <widget class="QTabBar" name="tabBar">
+    <widget class="QTabBar" name="tabBar" native="true">
      <property name="minimumSize">
       <size>
        <width>0</width>
@@ -161,12 +161,6 @@ QMenu::indicator:checked
        <width>16777215</width>
        <height>24</height>
       </size>
-     </property>
-     <property name="tabsClosable">
-      <bool>true</bool>
-     </property>
-     <property name="movable">
-      <bool>true</bool>
      </property>
      <property name="styleSheet">
       <string notr="true">QTabBar
@@ -202,17 +196,23 @@ QTabBar::close-button:hover
     background: #505254;
 }</string>
      </property>
+     <property name="tabsClosable" stdset="0">
+      <bool>true</bool>
+     </property>
+     <property name="movable" stdset="0">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
    <item>
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="handleWidth">
       <number>4</number>
      </property>
-     <widget class="QWidget" name="leftPanel">
+     <widget class="QWidget" name="leftPanel" native="true">
       <property name="minimumSize">
        <size>
         <width>16</width>
@@ -248,7 +248,7 @@ QTabBar::close-button:hover
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>0</y>
+         <y>6</y>
          <width>16</width>
          <height>6</height>
         </rect>
@@ -266,10 +266,10 @@ QTabBar::close-button:hover
        <string notr="true">background-color: #1f1f1f; border: none;</string>
       </property>
       <property name="horizontalScrollBarPolicy">
-       <enum>Qt::ScrollBarAlwaysOff</enum>
+       <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
       </property>
       <property name="alignment">
-       <set>Qt::AlignCenter</set>
+       <set>Qt::AlignmentFlag::AlignCenter</set>
       </property>
      </widget>
      <widget class="QScrollBar" name="verticalScrollBar">
@@ -284,9 +284,6 @@ QTabBar::close-button:hover
         <width>16</width>
         <height>16777215</height>
        </size>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
       </property>
       <property name="visible">
        <bool>false</bool>
@@ -313,6 +310,9 @@ QScrollBar::add-page, QScrollBar::sub-page
 {
     background: #292a2b;
 }</string>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Orientation::Vertical</enum>
       </property>
      </widget>
     </widget>
@@ -345,6 +345,13 @@ QScrollBar::add-page, QScrollBar::sub-page
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QTabBar</class>
+   <extends>QWidget</extends>
+   <header>qtabbar.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

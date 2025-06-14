@@ -207,45 +207,40 @@ class Ui_Widget(object):
 
         # Visor PDF
         self.visor_pdf = PySide6.QtWidgets.QGraphicsView() # Crear visor PDF
-        self.visor_pdf.setStyleSheet(u"background-color: #1f1f1f; border: none;") # Estilo
+        self.visor_pdf.setStyleSheet(u"""
+        QGraphicsView {
+                background-color: #1f1f1f;
+                border: none;
+            }
+            QScrollBar:vertical {
+                background: #292a2b;
+                width: 16px;
+                border: none;
+            }
+            QScrollBar::handle:vertical {
+                background: #404244;
+                min-height: 20px;
+                border-radius: 2px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background: #505254;
+            }
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {
+                background: none;
+                border: none;
+                height: 0px;
+            }
+            QScrollBar::add-page:vertical,
+            QScrollBar::sub-page:vertical {
+                background: #292a2b;
+            }
+        """) # Estilo con scrollbar personalizado
+
         self.visor_pdf.setAlignment(PySide6.QtCore.Qt.AlignCenter) # Centrar contenido
         self.visor_pdf.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Expanding, PySide6.QtWidgets.QSizePolicy.Expanding) # Política de tamaño
 
         self.layout_horizontal.addWidget(self.visor_pdf) # Añadir visor PDF al layout
-
-        # Scroll vertical (barra derecha)
-        self.barra_desplazamiento_vertical = PySide6.QtWidgets.QScrollBar() # Crear scrollbar
-        self.barra_desplazamiento_vertical.setOrientation(PySide6.QtCore.Qt.Vertical) # Orientación vertical
-        self.barra_desplazamiento_vertical.setMinimumSize(PySide6.QtCore.QSize(16, 0)) # Ancho mínimo
-        self.barra_desplazamiento_vertical.setMaximumSize(PySide6.QtCore.QSize(16, 16777215)) # Ancho máximo
-        self.barra_desplazamiento_vertical.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Fixed, PySide6.QtWidgets.QSizePolicy.Expanding) # Política de tamaño
-        self.barra_desplazamiento_vertical.setVisible(False) # Ocultar inicialmente
-        # Estilo para la scrollbar
-        self.barra_desplazamiento_vertical.setStyleSheet(u"""
-            QScrollBar
-            {
-                background: #292a2b;
-                width: 16px;
-            }
-
-            QScrollBar::handle
-            {
-                background: #404244;
-                min-height: 20px;
-            }
-
-            QScrollBar::handle:hover
-            {
-                background: #505254;
-            }
-
-            QScrollBar::add-page, QScrollBar::sub-page
-            {
-                background: #292a2b;
-            }
-        """)
-
-        self.layout_horizontal.addWidget(self.barra_desplazamiento_vertical) # Añadir scrollbar al layout
 
         # Crear un widget contenedor para el layout horizontal
         self.widget_central = PySide6.QtWidgets.QWidget() # Widget contenedor
