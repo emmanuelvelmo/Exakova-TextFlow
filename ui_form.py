@@ -101,13 +101,14 @@ class Ui_Widget(object):
             {
                 padding: 4px 24px 4px 12px;
                 background-color: transparent;
+                border: 1px solid transparent;
             }
 
             QMenu::item:selected
             {
                 background-color: #235c96;
                 border: 1px solid #50a0f0;
-                padding-left: 11px;
+                padding: 4px 24px 4px 12px;
             }
 
             QMenu::indicator
