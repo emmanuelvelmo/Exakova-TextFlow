@@ -16,7 +16,7 @@
   <property name="styleSheet">
    <string notr="true">background-color: #1f1f1f;</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="layout_vertical">
    <property name="spacing">
     <number>0</number>
    </property>
@@ -33,7 +33,15 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QMenuBar" name="menuBar">
+    <widget class="QMenuBar" name="barra_menu">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>800</width>
+       <height>20</height>
+      </rect>
+     </property>
      <property name="minimumSize">
       <size>
        <width>0</width>
@@ -45,6 +53,9 @@
        <width>16777215</width>
        <height>20</height>
       </size>
+     </property>
+     <property name="nativeMenuBar">
+      <bool>false</bool>
      </property>
      <property name="styleSheet">
       <string notr="true">QMenuBar
@@ -85,17 +96,17 @@ QMenu::item:selected
     padding-left: 23px;
 }</string>
      </property>
-     <property name="nativeMenuBar">
-      <bool>false</bool>
-     </property>
-     <widget class="QMenu" name="menuFile">
+     <widget class="QMenu" name="menu_archivo">
       <property name="title">
        <string>File</string>
       </property>
-      <addaction name="actionOpen"/>
-      <addaction name="actionExport"/>
+      <addaction name="accion_abrir"/>
+      <addaction name="accion_exportar"/>
      </widget>
-     <widget class="QMenu" name="menuSelect">
+     <widget class="QMenu" name="menu_seleccion">
+      <property name="title">
+       <string>Select</string>
+      </property>
       <property name="styleSheet">
        <string notr="true">QMenu
 {
@@ -128,28 +139,25 @@ QMenu::indicator
 
 QMenu::indicator:checked
 {
-    background-color: #404244;
+    background-color: #2c73ba;
     border: 1px solid #505254;
 }</string>
       </property>
-      <property name="title">
-       <string>Select</string>
-      </property>
-      <addaction name="actionApply_Margin_to_All_Tabs"/>
+      <addaction name="accion_aplicar_margen_todas_pestanas"/>
      </widget>
-     <widget class="QMenu" name="menuHelp">
+     <widget class="QMenu" name="menu_ayuda">
       <property name="title">
        <string>Help</string>
       </property>
-      <addaction name="actionAbout"/>
+      <addaction name="accion_acerca_de"/>
      </widget>
-     <addaction name="menuFile"/>
-     <addaction name="menuSelect"/>
-     <addaction name="menuHelp"/>
+     <addaction name="menu_archivo"/>
+     <addaction name="menu_seleccion"/>
+     <addaction name="menu_ayuda"/>
     </widget>
    </item>
    <item>
-    <widget class="QTabBar" name="tabBar" native="true">
+    <widget class="QTabBar" name="barra_pestanas">
      <property name="minimumSize">
       <size>
        <width>0</width>
@@ -162,11 +170,16 @@ QMenu::indicator:checked
        <height>24</height>
       </size>
      </property>
+     <property name="tabsClosable">
+      <bool>true</bool>
+     </property>
+     <property name="movable">
+      <bool>true</bool>
+     </property>
      <property name="styleSheet">
       <string notr="true">QTabBar
 {
     background: #292a2b;
-    border: none;
 }
 
 QTabBar::tab
@@ -196,139 +209,140 @@ QTabBar::close-button:hover
     background: #505254;
 }</string>
      </property>
-     <property name="tabsClosable" stdset="0">
-      <bool>true</bool>
-     </property>
-     <property name="movable" stdset="0">
-      <bool>true</bool>
-     </property>
     </widget>
    </item>
    <item>
-    <widget class="QSplitter" name="splitter">
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-     <property name="handleWidth">
-      <number>4</number>
-     </property>
-     <widget class="QWidget" name="leftPanel" native="true">
-      <property name="minimumSize">
-       <size>
-        <width>16</width>
-        <height>0</height>
-       </size>
+    <widget class="QWidget" name="widget_central">
+     <layout class="QHBoxLayout" name="layout_horizontal">
+      <property name="spacing">
+       <number>0</number>
       </property>
-      <property name="maximumSize">
-       <size>
-        <width>16</width>
-        <height>16777215</height>
-       </size>
+      <property name="leftMargin">
+       <number>0</number>
       </property>
-      <property name="styleSheet">
-       <string notr="true">background-color: #292a2b;</string>
+      <property name="topMargin">
+       <number>0</number>
       </property>
-      <widget class="QLabel" name="label_1">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>16</width>
-         <height>6</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">background-color: #235c96; border: none;</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_2">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>6</y>
-         <width>16</width>
-         <height>6</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">background-color: #235c96; border: none;</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </widget>
-     <widget class="QGraphicsView" name="pdfView">
-      <property name="styleSheet">
-       <string notr="true">background-color: #1f1f1f; border: none;</string>
+      <property name="rightMargin">
+       <number>0</number>
       </property>
-      <property name="horizontalScrollBarPolicy">
-       <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+      <property name="bottomMargin">
+       <number>0</number>
       </property>
-      <property name="alignment">
-       <set>Qt::AlignmentFlag::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QScrollBar" name="verticalScrollBar">
-      <property name="minimumSize">
-       <size>
-        <width>16</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>16</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="visible">
-       <bool>false</bool>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QScrollBar
-{
+      <item>
+       <widget class="QWidget" name="panel_izquierdo">
+        <property name="minimumSize">
+         <size>
+          <width>16</width>
+          <height>16</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: #292a2b;</string>
+        </property>
+        <widget class="QLabel" name="etiqueta_1">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>16</width>
+           <height>6</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: #235c96; border: none;</string>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+        </widget>
+        <widget class="QLabel" name="etiqueta_2">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>6</y>
+           <width>16</width>
+           <height>6</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: #235c96; border: none;</string>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+        </widget>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGraphicsView" name="visor_pdf">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QGraphicsView {
+    background-color: #1f1f1f;
+    border: none;
+}
+QScrollBar:vertical {
     background: #292a2b;
     width: 16px;
+    border: none;
 }
-
-QScrollBar::handle
-{
+QScrollBar::handle:vertical {
     background: #404244;
     min-height: 20px;
+    border-radius: 2px;
 }
-
-QScrollBar::handle:hover
-{
+QScrollBar::handle:vertical:hover {
     background: #505254;
 }
-
-QScrollBar::add-page, QScrollBar::sub-page
-{
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+    background: none;
+    border: none;
+    height: 0px;
+}
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
     background: #292a2b;
 }</string>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Orientation::Vertical</enum>
-      </property>
-     </widget>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>
-  <action name="actionOpen">
+  <action name="accion_abrir">
    <property name="text">
     <string>Open</string>
    </property>
   </action>
-  <action name="actionExport">
+  <action name="accion_exportar">
    <property name="text">
     <string>Export</string>
    </property>
   </action>
-  <action name="actionApply_Margin_to_All_Tabs">
+  <action name="accion_aplicar_margen_todas_pestanas">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -336,22 +350,15 @@ QScrollBar::add-page, QScrollBar::sub-page
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Apply Margin to All Tabs</string>
+    <string>Apply Margins to All Tabs</string>
    </property>
   </action>
-  <action name="actionAbout">
+  <action name="accion_acerca_de">
    <property name="text">
     <string>About Exakova TextFlow</string>
    </property>
   </action>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>QTabBar</class>
-   <extends>QWidget</extends>
-   <header>qtabbar.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

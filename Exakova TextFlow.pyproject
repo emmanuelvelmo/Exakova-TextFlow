@@ -3,6 +3,10 @@
         "widget.py",
         "form.ui",
         "ui_form.py",
-        "Exakova TextFlow.pyproject.user"
+        "Exakova TextFlow.pyproject.user",
+        "acerca_de.py",
+        "acerca_de.ui",
+        "rango_paginas.py",
+        "rango_paginas.ui"
     ]
 }

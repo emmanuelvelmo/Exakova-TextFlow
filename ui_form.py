@@ -22,6 +22,9 @@ class Ui_Widget(object):
         self.accion_aplicar_margen_todas_pestanas.setChecked(True) # Activar por defecto
         self.accion_aplicar_margen_todas_pestanas.setText("Apply Margins to All Tabs") # Texto de la acción
 
+        self.accion_rango_paginas = PySide6.QtGui.QAction(Widget) # Acción para exportar
+        self.accion_rango_paginas.setText("Pages Range") # Texto de la acción
+
         self.accion_acerca_de = PySide6.QtGui.QAction(Widget) # Acción para información
         self.accion_acerca_de.setText("About Exakova TextFlow") # Texto de la acción
 
@@ -124,6 +127,7 @@ class Ui_Widget(object):
         """)
 
         self.menu_seleccion.addAction(self.accion_aplicar_margen_todas_pestanas) # Añadir acción "Aplicar Margen a Todas las Pestañas"
+        self.menu_seleccion.addAction(self.accion_rango_paginas) #
 
         # Menú Ayuda (Help)
         self.menu_ayuda = PySide6.QtWidgets.QMenu(self.barra_menu) # Crear menú Ayuda
@@ -237,10 +241,21 @@ class Ui_Widget(object):
             }
         """) # Estilo con scrollbar personalizado
 
+        self.layout_horizontal.addWidget(self.visor_pdf) # Añadir visor PDF al layout
+
         self.visor_pdf.setAlignment(PySide6.QtCore.Qt.AlignCenter) # Centrar contenido
         self.visor_pdf.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Expanding, PySide6.QtWidgets.QSizePolicy.Expanding) # Política de tamaño
 
-        self.layout_horizontal.addWidget(self.visor_pdf) # Añadir visor PDF al layout
+        # Áreas de selección de texto
+        self.area_1 = PySide6.QtWidgets.QLabel(self.visor_pdf) # Primer área de selección
+        self.area_1.setGeometry(PySide6.QtCore.QRect(0, 0, self.visor_pdf.width(), 6)) # Posición y tamaño (arriba)
+        self.area_1.setStyleSheet(u"background-color: rgba(0, 0, 0, 40%); border: none;") # Negro con transparencia
+        self.area_1.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Expanding, PySide6.QtWidgets.QSizePolicy.Fixed) # Expandido horizontalmente, altura fija
+
+        self.area_2 = PySide6.QtWidgets.QLabel(self.visor_pdf) # Segunda área de selección
+        self.area_2.setGeometry(PySide6.QtCore.QRect(0, 6, self.visor_pdf.width(), 6)) # Posición y tamaño (6px desde arriba)
+        self.area_2.setStyleSheet(u"background-color: rgba(0, 0, 0, 40%); border: none;") # Negro con transparencia
+        self.area_2.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Expanding, PySide6.QtWidgets.QSizePolicy.Fixed) # Expandido horizontalmente, altura fija
 
         # Crear un widget contenedor para el layout horizontal
         self.widget_central = PySide6.QtWidgets.QWidget() # Widget contenedor
