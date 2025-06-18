@@ -4,7 +4,7 @@ import PySide6.QtWidgets # Módulo para widgets de UI
 
 # Clase principal para la interfaz de usuario
 class Ui_Widget(object):
-    def setupUi(self, Widget):
+    def iniciar_ui(self, Widget):
         # Configuración de la ventana principal
         Widget.resize(800, 600) # Establece tamaño inicial de la ventana (ancho, alto)
         Widget.setStyleSheet(u"background-color: #1f1f1f;") # Fondo oscuro para la ventana

@@ -13,6 +13,7 @@ class rango_paginas_ui(PySide6.QtWidgets.QDialog):
             color: white;
             font-family: 'Microsoft YaHei';
         """)
+
         self.setWindowTitle("Page Range Selection")
         self.setModal(True)  # Ventana modal
 
@@ -29,6 +30,7 @@ class rango_paginas_ui(PySide6.QtWidgets.QDialog):
             padding-bottom: 10px;
             border-bottom: 1px solid #505254;
         """)
+
         self.layout_principal.addWidget(self.etiqueta_titulo)
 
         # Contenedor para los inputs
@@ -52,6 +54,7 @@ class rango_paginas_ui(PySide6.QtWidgets.QDialog):
                 width: 0px;  /* Elimina los botones */
             }
         """)
+
         self.layout_inputs.addRow("Start page:", self.input_inicio)
 
         # Campo página final
@@ -90,6 +93,7 @@ class rango_paginas_ui(PySide6.QtWidgets.QDialog):
                 border: 1px solid #707274;
             }
         """)
+
         self.boton_cancelar.clicked.connect(self.reject)
         self.layout_botones.addWidget(self.boton_cancelar)
 
@@ -108,6 +112,7 @@ class rango_paginas_ui(PySide6.QtWidgets.QDialog):
                 border: 1px solid #50a0f0;
             }
         """)
+
         self.boton_aceptar.clicked.connect(self.accept)
         self.layout_botones.addWidget(self.boton_aceptar)
 
@@ -120,4 +125,4 @@ class rango_paginas_ui(PySide6.QtWidgets.QDialog):
     #
     def obtener_rango(self):
         # Devuelve tupla con (inicio, fin)
-        return (self.input_inicio.value(), self.input_fin.value())
+        return self.input_inicio.value(), self.input_fin.value()

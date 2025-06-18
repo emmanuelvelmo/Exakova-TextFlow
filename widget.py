@@ -18,12 +18,16 @@ if hasattr(sys, 'frozen'): # Si la aplicación está compilada (ejecutable)
 vent_princ = PySide6.QtWidgets.QWidget() # Crea el widget principal de la aplicación
 
 ui_val = ui_form.Ui_Widget() # Crea instancia de la interfaz de usuario
-ui_val.setupUi(vent_princ) # Configura la interfaz en el widget principal
+ui_val.iniciar_ui(vent_princ) # Configura la interfaz en el widget principal
 
 # VARIABLES PARA REDIMENSIONAR
 altura_inicial_panel_izquierdo = 1
 cord_y_etiqueta_1 = 0 # Extremo superior
 cord_y_etiqueta_2 = 0
+
+# VARIABLES DE RANGO DE PÁGINAS
+pag_inicio = 0
+pag_fin = 0
 
 # CONFIGURACIÓN DE LA INTERFAZ DE USUARIO
 # Calcular dimensiones de elementos
@@ -79,64 +83,12 @@ tab_close_button_style = """
 ui_val.barra_pestanas.setStyleSheet(ui_val.barra_pestanas.styleSheet() + tab_close_button_style) # Aplica los estilos al tab bar
 
 # VARIABLES GLOBALES
-current_file = None # Archivo PDF actualmente abierto
+archivo_iter = None # Archivo PDF actualmente abierto
 doc = None # Documento PDF actual
-docs = {} # Diccionario que almacena todos los documentos abiertos por índice de tab
-page_items = [] # Lista de elementos gráficos de páginas PDF
+docs_dicc = {} # Diccionario que almacena todos los documentos abiertos por índice de tab
+pagina_arts = [] # Lista de elementos gráficos de páginas PDF
 
 # FUNCIONES DE GESTIÓN DE INTERFAZ
-# Maneja el cambio de pestaña en la interfaz
-def cambiar_pestana(index):
-    global doc, current_file # Declara variables globales que se modificarán
-
-    if index >= 0 and index in docs: # Verifica que el índice sea válido y exista en docs
-        doc = docs[index] # Cambia al documento del tab seleccionado
-        current_file = doc.name # Actualiza el archivo actual
-        mostrar_paginas_pdf() # Muestra las páginas del nuevo documento
-        centrar_primera_pagina() # Centra la primera página
-
-# Cierra una pestaña abierta y gestiona los recursos asociados
-def cerrar_pestana(index):
-    global current_file, doc # Declara variables globales que se modificarán
-
-    if index in docs: # Si el índice existe en docs
-        docs[index].close() # Cierra el documento
-
-        del docs[index] # Elimina el documento del diccionario
-
-    ui_val.barra_pestanas.removeTab(index) # Remueve el tab de la barra
-
-    if ui_val.barra_pestanas.count() == 0: # Si no quedan tabs abiertos
-        limpiar_vista_pdf() # Limpia la vista PDF
-        current_file = None # Reinicia el archivo actual
-        doc = None # Reinicia el documento actual
-
-# Centra la primera página del documento en la vista
-def centrar_primera_pagina():
-    if not page_items: # Si no hay páginas cargadas
-        return # Sale de la función
-
-    PySide6.QtCore.QTimer.singleShot(50, lambda: ui_val.visor_pdf.fitInView(page_items[0], PySide6.QtCore.Qt.KeepAspectRatio)) # Centra la primera página después de 50ms manteniendo proporción
-
-# Limpia la vista del PDF y reinicia los elementos relacionados
-def limpiar_vista_pdf():
-    global page_items # Declara variable global que se modificará
-
-    scene.clear() # Limpia todos los elementos de la escena
-    page_items = [] # Reinicia la lista de páginas
-
-# Ajusta el contenido del visor PDF
-def ajustar_contenido():
-    if not doc or not page_items: # Si no hay documento o páginas
-        return # Sale de la función
-
-    view_height = ui_val.visor_pdf.viewport().height() # Obtiene altura del viewport
-    content_height = scene.sceneRect().height() # Obtiene altura del contenido
-
-    if page_items:
-        total_height = sum(item.pixmap().height() for item in page_items)
-        scene.setSceneRect(PySide6.QtCore.QRectF(0, 0, page_items[0].pixmap().width(), total_height))
-
 # Maneja el evento de redimensionamiento de la ventana
 def evento_redimensionamiento(event):
     global altura_inicial_panel_izquierdo, cord_y_etiqueta_1, cord_y_etiqueta_2
@@ -163,12 +115,12 @@ def evento_redimensionamiento(event):
 
 
 
-    if doc and page_items:
+    if doc and pagina_arts:
         # Ajustar todas las páginas al nuevo tamaño
         viewport_height = ui_val.visor_pdf.viewport().height()
         viewport_width = ui_val.visor_pdf.viewport().width()
 
-        first_page = page_items[0]
+        first_page = pagina_arts[0]
         first_page_pixmap = first_page.pixmap()
         page_ratio = first_page_pixmap.width() / first_page_pixmap.height()
 
@@ -184,42 +136,97 @@ def evento_redimensionamiento(event):
         # Ajustar la vista
         ui_val.visor_pdf.fitInView(first_page, PySide6.QtCore.Qt.KeepAspectRatio)
 
+# Maneja el cambio de pestaña en la interfaz
+def cambiar_pestana(index):
+    global doc, archivo_iter # Declara variables globales que se modificarán
+
+    if index >= 0 and index in docs_dicc: # Verifica que el índice sea válido y exista en docs_dicc
+        doc = docs_dicc[index] # Cambia al documento del tab seleccionado
+        archivo_iter = doc.name # Actualiza el archivo actual
+
+        ventana_paginas_pdf() # Muestra las páginas del nuevo documento
+        centrar_paginas() # Centra la primera página
+
+# Cierra una pestaña abierta y gestiona los recursos asociados
+def cerrar_pestana(index):
+    global archivo_iter, doc # Declara variables globales que se modificarán
+
+    if index in docs_dicc: # Si el índice existe en docs_dicc
+        docs_dicc[index].close() # Cierra el documento
+
+        del docs_dicc[index] # Elimina el documento del diccionario
+
+    ui_val.barra_pestanas.removeTab(index) # Remueve el tab de la barra
+
+    if ui_val.barra_pestanas.count() == 0: # Si no quedan tabs abiertos
+        limpiar_vista_pdf() # Limpia la vista PDF
+        archivo_iter = None # Reinicia el archivo actual
+        doc = None # Reinicia el documento actual
+
+# Centra la primera página del documento en la vista
+def centrar_paginas():
+    if not pagina_arts: # Si no hay páginas cargadas
+        return # Sale de la función
+
+    PySide6.QtCore.QTimer.singleShot(50, lambda: ui_val.visor_pdf.fitInView(pagina_arts[0], PySide6.QtCore.Qt.KeepAspectRatio)) # Centra la primera página después de 50ms manteniendo proporción
+
+# Limpia la vista del PDF y reinicia los elementos relacionados
+def limpiar_vista_pdf():
+    global pagina_arts # Declara variable global que se modificará
+
+    scene.clear() # Limpia todos los elementos de la escena
+    pagina_arts = [] # Reinicia la lista de páginas
+
+# Ajusta el contenido del visor PDF
+def ajustar_contenido():
+    if not doc or not pagina_arts: # Si no hay documento o páginas
+        return # Sale de la función
+
+    view_height = ui_val.visor_pdf.viewport().height() # Obtiene altura del viewport
+    content_height = scene.sceneRect().height() # Obtiene altura del contenido
+
+    if pagina_arts:
+        total_height = sum(item.pixmap().height() for item in pagina_arts)
+        scene.setSceneRect(PySide6.QtCore.QRectF(0, 0, pagina_arts[0].pixmap().width(), total_height))
+
 # FUNCIONES DE MANEJO DE ARCHIVOS
 # Abre uno o varios archivos PDF mediante un cuadro de diálogo
 def abrir_pdf():
-    file_paths, _ = PySide6.QtWidgets.QFileDialog.getOpenFileNames(
-        vent_princ, "Abrir PDF(s)", "", "PDF Files (*.pdf)") # Abre diálogo para seleccionar archivos PDF
+    archivos_ruta, _ = PySide6.QtWidgets.QFileDialog.getOpenFileNames(vent_princ, "Open PDF(s)", "", "PDF Files (*.pdf)") # Abre diálogo para seleccionar archivos PDF
 
-    if file_paths: # Si se seleccionaron archivos
-        for file_path in file_paths: # Itera sobre cada archivo seleccionado
-            cargar_pdf(file_path) # Carga cada archivo PDF
+    if archivos_ruta: # Si se seleccionaron archivos
+        # Itera sobre cada archivo seleccionado
+        for archivo_dir in archivos_ruta: # Itera sobre cada archivo seleccionado
+            cargar_pdf(archivo_dir) # Carga cada archivo PDF
 
 # Carga un archivo PDF en una nueva pestaña
-def cargar_pdf(file_path):
-    global doc, current_file # Declara variables globales que se modificarán
+def cargar_pdf(archivo_dir):
+    global doc, docs_dicc, archivo_iter # Declara variables globales que se modificarán
 
     try:
-        new_doc = fitz.open(file_path) # Abre el archivo PDF con PyMuPDF
-        tab_index = ui_val.barra_pestanas.addTab(os.path.basename(file_path)) # Añade nuevo tab con nombre del archivo
-        docs[tab_index] = new_doc # Almacena el documento en el diccionario
+        nuevo_doc = fitz.open(archivo_dir) # Abre el archivo PDF con PyMuPDF en memoria
 
-        ui_val.barra_pestanas.setCurrentIndex(tab_index) # Cambia al tab recién creado
-        doc = new_doc # Actualiza el documento actual
-        current_file = file_path # Actualiza el archivo actual
-        mostrar_paginas_pdf() # Muestra las páginas del PDF
-        centrar_primera_pagina() # Centra la primera página
+        tab_indice = ui_val.barra_pestanas.addTab(os.path.basename(archivo_dir)) # Añade nueva pestaña con nombre del archivo
+        docs_dicc[tab_indice] = nuevo_doc # Almacena el documento en el diccionario
+        ui_val.barra_pestanas.setCurrentIndex(tab_indice) # Cambia al tab recién creado
 
+        doc = nuevo_doc # Actualiza el documento actual
+        archivo_iter = archivo_dir # Actualiza el archivo actual
+
+        ventana_paginas_pdf() # Muestra las páginas del PDF
+        centrar_paginas() # Centrar páginas
     except Exception as e:
         print(f"Error al cargar PDF: {e}") # Muestra error en consola si falla la carga
 
 # Renderiza y muestra las páginas del PDF en la vista
-def mostrar_paginas_pdf():
-    global page_items
+def ventana_paginas_pdf():
+    global pagina_arts
 
     if not doc:
         return
 
     limpiar_vista_pdf()
+
     y_pos = 0
 
     # Obtener el tamaño disponible del visor PDF
@@ -245,37 +252,57 @@ def mostrar_paginas_pdf():
         matrix = fitz.Matrix(scale_factor, scale_factor)
         pix = page.get_pixmap(matrix=matrix)
 
-        image = PySide6.QtGui.QImage(
-            pix.samples,
-            pix.width,
-            pix.height,
-            pix.stride,
-            PySide6.QtGui.QImage.Format_RGB888)
+        image = PySide6.QtGui.QImage(pix.samples,pix.width,pix.height,pix.stride,PySide6.QtGui.QImage.Format_RGB888)
 
         pixmap = PySide6.QtGui.QPixmap.fromImage(image)
         item = PySide6.QtWidgets.QGraphicsPixmapItem(pixmap)
         item.setPos(0, y_pos)
         scene.addItem(item)
-        page_items.append(item)
+        pagina_arts.append(item)
 
         y_pos += pixmap.height()
 
-    if page_items:
+    if pagina_arts:
         total_height = y_pos
-        scene.setSceneRect(PySide6.QtCore.QRectF(0, 0, page_items[0].pixmap().width(), total_height))
+        scene.setSceneRect(PySide6.QtCore.QRectF(0, 0, pagina_arts[0].pixmap().width(), total_height))
+
+    # Configurar el scroll por página completa
+    barra_desplazamiento = ui_val.visor_pdf.verticalScrollBar() # Obtiene una referencia al scrollbar vertical del visor PDF
+    barra_desplazamiento.setSingleStep(pagina_arts[0].pixmap().height()) # Saltar por páginas con rueda
+    barra_desplazamiento.setPageStep(pagina_arts[0].pixmap().height()) # Click en scroll/PageKeys
+
+    # Conectar el evento de rueda del mouse
+    ui_val.visor_pdf.wheelEvent = wheelEvent
 
     # Ajustar la vista para que la primera página se vea completa
-    if page_items:
-        ui_val.visor_pdf.fitInView(page_items[0], PySide6.QtCore.Qt.KeepAspectRatio)
+    if pagina_arts:
+        ui_val.visor_pdf.fitInView(pagina_arts[0], PySide6.QtCore.Qt.KeepAspectRatio)
 
 # Exportar texto en PDF a TXT
 def exportar_txt():
-    if not current_file: # Si no hay archivo actual
+    if not archivo_iter: # Si no hay archivo actual
         return # Sale de la función
     else:
         #
 
         return
+
+#
+def wheelEvent(event):
+    # Obtener la barra de desplazamiento vertical
+    scroll_bar = ui_val.visor_pdf.verticalScrollBar()
+
+    # Determinar la dirección del scroll (positivo = abajo, negativo = arriba)
+    delta = event.angleDelta().y()
+
+    if delta > 0:  # Scroll hacia arriba
+        # Ir a la página anterior
+        scroll_bar.setValue(scroll_bar.value() - scroll_bar.pageStep())
+    else:  # Scroll hacia abajo
+        # Ir a la página siguiente
+        scroll_bar.setValue(scroll_bar.value() + scroll_bar.pageStep())
+
+    event.accept()
 
 # FUNCIÓN PARA MANEJAR LOS LABELS ARRASTRABLES
 # Configura el comportamiento arrastrable de las etiquetas en el panel izquierdo
@@ -335,20 +362,26 @@ def configurar_etiquetas_arrastrables():
 
 # Aplicar márgen a todas las pestañas
 def aplicar_margen_pestanas():
+
+
+
+
+
+
     return
 
 # VENTANAS
-def mostrar_rango_paginas():
-    ventana = rango_paginas.rango_paginas_ui()
+def ventana_rango_paginas():
+    global pag_inicio, pag_fin
 
-    ventana.ventana_ui()
-    ventana.exec()
+    ventana = rango_paginas.rango_paginas_ui() # Crear la ventana (no visible aún)
+    ventana.ventana_ui() # Configurar la interfaz (añadir widgets, estilos, etc.)
 
-    # Aplicar rango de páginas a la pestaña
-
+    if ventana.exec() == PySide6.QtWidgets.QDialog.Accepted: # Si el usuario hizo clic en "OK"
+        pag_inicio, pag_fin = ventana.obtener_rango() # Asigna los valores a las variables globales
 
 # Ventana "Acerca de"
-def mostrar_acerca_de():
+def ventana_acerca_de():
     ventana = acerca_de.acerca_de_ui()
 
     ventana.ventana_ui()
@@ -359,8 +392,15 @@ def mostrar_acerca_de():
 ui_val.accion_abrir.triggered.connect(abrir_pdf) # Conecta la acción "Open" con la función "abrir_pdf"
 ui_val.accion_exportar.triggered.connect(exportar_txt) # Conecta la acción "Export" con la "función exportar_txt"
 ui_val.accion_aplicar_margen_todas_pestanas.triggered.connect(aplicar_margen_pestanas) # Conecta la acción "Apply Margin to All Tabs" con la función "aplicar_margen_pestanas"
-ui_val.accion_rango_paginas.triggered.connect(mostrar_rango_paginas) # Conecta la acción "Pages Range" con la función "mostrar_rango_paginas"
-ui_val.accion_acerca_de.triggered.connect(mostrar_acerca_de) # Conecta la acción "About Exakova TextFlow" con la función "mostrar_acerca_de"
+ui_val.accion_rango_paginas.triggered.connect(ventana_rango_paginas) # Conecta la acción "Pages Range" con la función "ventana_rango_paginas"
+ui_val.accion_acerca_de.triggered.connect(ventana_acerca_de) # Conecta la acción "About Exakova TextFlow" con la función "ventana_acerca_de"
+
+# Accesos directos
+ui_val.accion_abrir.setShortcut("Ctrl+O") # Atajo para abrir
+ui_val.accion_exportar.setShortcut("Ctrl+S") # Atajo para exportar
+
+ui_val.accion_abrir.setShortcutVisibleInContextMenu(False) # Oculta "Ctrl+O"
+ui_val.accion_exportar.setShortcutVisibleInContextMenu(False) # Oculta "Ctrl+S"
 
 # Conectar eventos de pestañas
 ui_val.barra_pestanas.tabCloseRequested.connect(cerrar_pestana) # Conecta la señal de cierre de tab
