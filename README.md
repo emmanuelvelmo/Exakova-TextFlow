@@ -3,5 +3,5 @@ A software that allows you to load PDF files and define a single text area to ap
 
 <p align="left">
   <br/>
-  <img src=""/>
+  <img src="https://github.com/user-attachments/assets/5516abc2-b30d-405c-b51c-63c3b3e59e2d"/>
 </p>
