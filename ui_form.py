@@ -258,6 +258,13 @@ class Ui_Widget(object):
         self.area_2.setStyleSheet(u"background-color: rgba(0, 0, 0, 40%); border: none;") # Negro con transparencia
         self.area_2.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Expanding, PySide6.QtWidgets.QSizePolicy.Fixed) # Expandido horizontalmente, altura fija
 
+        # Accesos directos
+        self.shortcut_abrir = PySide6.QtGui.QShortcut(PySide6.QtGui.QKeySequence("Ctrl+O"), Widget)
+        self.shortcut_abrir.activated.connect(self.accion_abrir.trigger)
+
+        self.shortcut_exportar = PySide6.QtGui.QShortcut(PySide6.QtGui.QKeySequence("Ctrl+S"), Widget)
+        self.shortcut_exportar.activated.connect(self.accion_exportar.trigger)
+
         # Crear un widget contenedor para el layout horizontal
         self.widget_central = PySide6.QtWidgets.QWidget() # Widget contenedor
         self.widget_central.setLayout(self.layout_horizontal) # Asignar el layout horizontal al contenedor

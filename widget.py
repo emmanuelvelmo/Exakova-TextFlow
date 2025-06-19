@@ -260,9 +260,9 @@ def ventana_paginas_pdf():
         scene.setSceneRect(PySide6.QtCore.QRectF(0, 0, pagina_arts[0].pixmap().width(), total_height))
 
     # Configurar el scroll por página completa
-    barra_desplazamiento = ui_val.visor_pdf.verticalScrollBar() # Obtiene una referencia al scrollbar vertical del visor PDF
-    barra_desplazamiento.setSingleStep(pagina_arts[0].pixmap().height()) # Saltar por páginas con rueda
-    barra_desplazamiento.setPageStep(pagina_arts[0].pixmap().height()) # Click en scroll/PageKeys
+    #barra_desplazamiento = ui_val.visor_pdf.verticalScrollBar() # Obtiene una referencia al scrollbar vertical del visor PDF
+    #barra_desplazamiento.setSingleStep(pagina_arts[0].pixmap().height()) # Saltar por páginas con rueda
+    #barra_desplazamiento.setPageStep(pagina_arts[0].pixmap().height()) # Click en scroll/PageKeys
 
     # Conectar el evento de rueda del mouse
     ui_val.visor_pdf.wheelEvent = voluta_desp
@@ -288,10 +288,10 @@ def voluta_desp(event):
     # Determinar la dirección del scroll (positivo = abajo, negativo = arriba)
     delta = event.angleDelta().y()
 
-    if delta > 0:  # Scroll hacia arriba
+    if delta > 0: # Scroll hacia arriba
         # Ir a la página anterior
         scroll_bar.setValue(scroll_bar.value() - scroll_bar.pageStep())
-    else:  # Scroll hacia abajo
+    else: # Scroll hacia abajo
         # Ir a la página siguiente
         scroll_bar.setValue(scroll_bar.value() + scroll_bar.pageStep())
 
@@ -393,13 +393,6 @@ ui_val.accion_exportar.triggered.connect(exportar_txt) # Conecta la acción "Exp
 ui_val.accion_aplicar_margen_todas_pestanas.triggered.connect(aplicar_margen_pestanas) # Conecta la acción "Apply Margin to All Tabs" con la función "aplicar_margen_pestanas"
 ui_val.accion_rango_paginas.triggered.connect(ventana_rango_paginas) # Conecta la acción "Pages Range" con la función "ventana_rango_paginas"
 ui_val.accion_acerca_de.triggered.connect(ventana_acerca_de) # Conecta la acción "About Exakova TextFlow" con la función "ventana_acerca_de"
-
-# Accesos directos
-ui_val.accion_abrir.setShortcut("Ctrl+O") # Atajo para abrir
-ui_val.accion_exportar.setShortcut("Ctrl+S") # Atajo para exportar
-
-ui_val.accion_abrir.setShortcutVisibleInContextMenu(False) # Oculta "Ctrl+O"
-ui_val.accion_exportar.setShortcutVisibleInContextMenu(False) # Oculta "Ctrl+S"
 
 # Conectar eventos de pestañas
 ui_val.barra_pestanas.tabCloseRequested.connect(cerrar_pestana) # Conecta la señal de cierre de tab

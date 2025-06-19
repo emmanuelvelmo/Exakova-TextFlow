@@ -34,14 +34,6 @@
    </property>
    <item>
     <widget class="QMenuBar" name="barra_menu">
-     <property name="geometry">
-      <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>800</width>
-       <height>20</height>
-      </rect>
-     </property>
      <property name="minimumSize">
       <size>
        <width>0</width>
@@ -53,9 +45,6 @@
        <width>16777215</width>
        <height>20</height>
       </size>
-     </property>
-     <property name="nativeMenuBar">
-      <bool>false</bool>
      </property>
      <property name="styleSheet">
       <string notr="true">QMenuBar
@@ -96,6 +85,9 @@ QMenu::item:selected
     padding-left: 23px;
 }</string>
      </property>
+     <property name="nativeMenuBar">
+      <bool>false</bool>
+     </property>
      <widget class="QMenu" name="menu_archivo">
       <property name="title">
        <string>File</string>
@@ -104,9 +96,6 @@ QMenu::item:selected
       <addaction name="accion_exportar"/>
      </widget>
      <widget class="QMenu" name="menu_seleccion">
-      <property name="title">
-       <string>Select</string>
-      </property>
       <property name="styleSheet">
        <string notr="true">QMenu
 {
@@ -143,7 +132,11 @@ QMenu::indicator:checked
     border: 1px solid #505254;
 }</string>
       </property>
+      <property name="title">
+       <string>Select</string>
+      </property>
       <addaction name="accion_aplicar_margen_todas_pestanas"/>
+      <addaction name="actionPages_Range"/>
      </widget>
      <widget class="QMenu" name="menu_ayuda">
       <property name="title">
@@ -157,7 +150,7 @@ QMenu::indicator:checked
     </widget>
    </item>
    <item>
-    <widget class="QTabBar" name="barra_pestanas">
+    <widget class="QTabBar" name="barra_pestanas" native="true">
      <property name="minimumSize">
       <size>
        <width>0</width>
@@ -169,12 +162,6 @@ QMenu::indicator:checked
        <width>16777215</width>
        <height>24</height>
       </size>
-     </property>
-     <property name="tabsClosable">
-      <bool>true</bool>
-     </property>
-     <property name="movable">
-      <bool>true</bool>
      </property>
      <property name="styleSheet">
       <string notr="true">QTabBar
@@ -209,93 +196,98 @@ QTabBar::close-button:hover
     background: #505254;
 }</string>
      </property>
+     <property name="tabsClosable" stdset="0">
+      <bool>true</bool>
+     </property>
+     <property name="movable" stdset="0">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="widget_central">
-     <layout class="QHBoxLayout" name="layout_horizontal">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QWidget" name="panel_izquierdo">
-        <property name="minimumSize">
-         <size>
+    <layout class="QHBoxLayout" name="layout_horizontal">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QWidget" name="panel_izquierdo" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: #292a2b;</string>
+       </property>
+       <widget class="QLabel" name="etiqueta_1">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
           <width>16</width>
-          <height>16</height>
-         </size>
+          <height>6</height>
+         </rect>
         </property>
-        <property name="maximumSize">
-         <size>
-          <width>16</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
         </property>
         <property name="styleSheet">
-         <string notr="true">background-color: #292a2b;</string>
+         <string notr="true">background-color: #235c96; border: none;</string>
         </property>
-        <widget class="QLabel" name="etiqueta_1">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>16</width>
-           <height>6</height>
-          </rect>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">background-color: #235c96; border: none;</string>
-         </property>
-         <property name="cursor">
-          <cursorShape>PointingHandCursor</cursorShape>
-         </property>
-        </widget>
-        <widget class="QLabel" name="etiqueta_2">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>6</y>
-           <width>16</width>
-           <height>6</height>
-          </rect>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">background-color: #235c96; border: none;</string>
-         </property>
-         <property name="cursor">
-          <cursorShape>PointingHandCursor</cursorShape>
-         </property>
-        </widget>
        </widget>
-      </item>
-      <item>
-       <widget class="QGraphicsView" name="visor_pdf">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+       <widget class="QLabel" name="etiqueta_2">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>6</y>
+          <width>16</width>
+          <height>6</height>
+         </rect>
+        </property>
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
         </property>
         <property name="styleSheet">
-         <string notr="true">QGraphicsView {
+         <string notr="true">background-color: #235c96; border: none;</string>
+        </property>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGraphicsView" name="visor_pdf">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QGraphicsView {
     background-color: #1f1f1f;
     border: none;
 }
@@ -322,14 +314,13 @@ QScrollBar::add-page:vertical,
 QScrollBar::sub-page:vertical {
     background: #292a2b;
 }</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
   <action name="accion_abrir">
@@ -358,7 +349,19 @@ QScrollBar::sub-page:vertical {
     <string>About Exakova TextFlow</string>
    </property>
   </action>
+  <action name="actionPages_Range">
+   <property name="text">
+    <string>Pages Range</string>
+   </property>
+  </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QTabBar</class>
+   <extends>QWidget</extends>
+   <header>qtabbar.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

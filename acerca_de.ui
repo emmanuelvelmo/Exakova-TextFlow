@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>acerca_de_ui</class>
+ <widget class="QDialog" name="acerca_de_ui">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>240</width>
+    <height>240</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>About Exakova TextFlow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(31, 31, 31);</string>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>false</bool>
+  </property>
+  <layout class="QVBoxLayout" name="layout_vertical">
+   <property name="spacing">
+    <number>10</number>
+   </property>
+   <property name="leftMargin">
+    <number>30</number>
+   </property>
+   <property name="topMargin">
+    <number>30</number>
+   </property>
+   <property name="rightMargin">
+    <number>30</number>
+   </property>
+   <property name="bottomMargin">
+    <number>30</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="texto_principal">
+     <property name="font">
+      <font>
+       <family>Microsoft YaHei</family>
+       <pointsize>11</pointsize>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: white;</string>
+     </property>
+     <property name="text">
+      <string>Exakova TextFlow</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="texto_secundario">
+     <property name="font">
+      <font>
+       <family>Microsoft YaHei</family>
+       <pointsize>8</pointsize>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: white;</string>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;
+&lt;p&gt;Version 1.0&lt;/p&gt;
+&lt;p&gt;Copyright© 2025 Exakova Inc.&lt;/p&gt;
+&lt;p&gt;All rights reserved&lt;/p&gt;
+&lt;p&gt;Web: &lt;a href=&quot;https://github.com/exakova&quot; style=&quot;color: #007BFF; text-decoration: underline;&quot;&gt;https://github.com/exakova&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Email: &lt;a href=&quot;mailto:exakova@protonmail.com&quot; style=&quot;color: #007BFF; text-decoration: underline;&quot;&gt;exakova@protonmail.com&lt;/a&gt;&lt;/p&gt;
+&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+     <property name="openExternalLinks">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="espaciador_vertical">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
