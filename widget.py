@@ -21,7 +21,7 @@ ui_val = ui_form.Ui_Widget() # Crea instancia de la interfaz de usuario
 ui_val.iniciar_ui(vent_princ) # Configura la interfaz en el widget principal
 
 # VARIABLES PARA REDIMENSIONAR
-altura_inicial_panel_izquierdo = 1
+altura_panel_izquierdo = 1
 cord_y_etiqueta_1 = 0 # Extremo superior
 cord_y_etiqueta_2 = 0
 
@@ -32,7 +32,7 @@ pag_fin = 0
 # CONFIGURACIÓN DE LA INTERFAZ DE USUARIO
 # Calcular dimensiones de elementos
 def renderizar_etiquetas_areas():
-    global altura_inicial_panel_izquierdo, cord_y_etiqueta_2
+    global altura_panel_izquierdo, cord_y_etiqueta_2
 
     # Colocar etiquetas arrastrables y áreas de selección a los extremos superior e inferior de la ventana
     ui_val.etiqueta_1.move(0, 0) # Colocar en la parte superior
@@ -45,8 +45,8 @@ def renderizar_etiquetas_areas():
     ui_val.area_2.setGeometry(0, ui_val.etiqueta_2.y(), vent_princ.width() - ui_val.panel_izquierdo.width(), ui_val.etiqueta_2.height())
 
     # Captura de dimensiones
-    altura_inicial_panel_izquierdo = ui_val.panel_izquierdo.height() # Altura inicial del panel izquierdo
-    cord_y_etiqueta_2 = altura_inicial_panel_izquierdo # Extremo inferior del panel izquierdo
+    altura_panel_izquierdo = ui_val.panel_izquierdo.height() # Altura inicial del panel izquierdo
+    cord_y_etiqueta_2 = altura_panel_izquierdo # Extremo inferior del panel izquierdo
 
 # Realizar dibujado y después calcular dimensiones
 PySide6.QtCore.QTimer.singleShot(0, renderizar_etiquetas_areas)
@@ -91,10 +91,10 @@ pagina_arts = [] # Lista de elementos gráficos de páginas PDF
 # FUNCIONES DE GESTIÓN DE INTERFAZ
 # Maneja el evento de redimensionamiento de la ventana
 def evento_redimensionamiento(event):
-    global altura_inicial_panel_izquierdo, cord_y_etiqueta_1, cord_y_etiqueta_2
+    global altura_panel_izquierdo, cord_y_etiqueta_1, cord_y_etiqueta_2
 
     # Calcular ratio del panel izquierdo después de redimensionar
-    ratio_panel_izquierdo = ui_val.panel_izquierdo.height() / altura_inicial_panel_izquierdo
+    ratio_panel_izquierdo = ui_val.panel_izquierdo.height() / altura_panel_izquierdo
 
     # Normalización de posiciones de etiquetas
     norm_cord_y_etiqueta_1 = round(ratio_panel_izquierdo * cord_y_etiqueta_1)
@@ -106,14 +106,7 @@ def evento_redimensionamiento(event):
 
     # Mover áreas selección a la par con las etiquetas
     ui_val.area_1.setGeometry(0, 0, ui_val.visor_pdf.width(), ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height())
-    ui_val.area_2.setGeometry(0, ui_val.etiqueta_2.y(), ui_val.visor_pdf.width(), ui_val.etiqueta_2.y())
-
-
-
-
-
-
-
+    ui_val.area_2.setGeometry(0, ui_val.etiqueta_2.y(), ui_val.visor_pdf.width(), ui_val.visor_pdf.height() - ui_val.etiqueta_2.y())
 
     if doc and pagina_arts:
         # Ajustar todas las páginas al nuevo tamaño
@@ -272,7 +265,7 @@ def ventana_paginas_pdf():
     barra_desplazamiento.setPageStep(pagina_arts[0].pixmap().height()) # Click en scroll/PageKeys
 
     # Conectar el evento de rueda del mouse
-    ui_val.visor_pdf.wheelEvent = wheelEvent
+    ui_val.visor_pdf.wheelEvent = voluta_desp
 
     # Ajustar la vista para que la primera página se vea completa
     if pagina_arts:
@@ -288,7 +281,7 @@ def exportar_txt():
         return
 
 #
-def wheelEvent(event):
+def voluta_desp(event):
     # Obtener la barra de desplazamiento vertical
     scroll_bar = ui_val.visor_pdf.verticalScrollBar()
 
@@ -316,7 +309,11 @@ def configurar_etiquetas_arrastrables():
 
      # Maneja el evento de presión del ratón sobre las etiquetas (actualizar el diccionario según la etiqueta que se presione)
     def evento_presion_raton(evento):
+        global altura_panel_izquierdo
+
         if evento.button() == PySide6.QtCore.Qt.LeftButton: # Solo botón izquierdo
+            altura_panel_izquierdo = ui_val.panel_izquierdo.height() # Actualizar altura de panel izquierdo
+
             posicion = evento.position().toPoint() # Posición del click
 
             #
@@ -342,10 +339,12 @@ def configurar_etiquetas_arrastrables():
                 tmp_y = max(0, min(tmp_y, ui_val.etiqueta_2.y() - etiqueta.height())) # Límites
                 ui_val.area_1.setGeometry(0, 0, ui_val.area_1.width(), tmp_y + etiqueta.height()) #
                 cord_y_etiqueta_1 = tmp_y # Actualizar coordenada para etiqueta
+                cord_y_etiqueta_2 = ui_val.etiqueta_2.y() + ui_val.etiqueta_2.height() # Actualiar posición de la etique sin mover
             else: # Para etiqueta inferior
                 tmp_y = max(ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height(), min(tmp_y, ui_val.panel_izquierdo.height() - etiqueta.height())) # Límites
                 ui_val.area_2.setGeometry(0, tmp_y, ui_val.area_2.width(), vent_princ.height() - tmp_y - ui_val.barra_menu.height() - ui_val.barra_pestanas.height()) #
                 cord_y_etiqueta_2 = tmp_y + ui_val.etiqueta_2.height() # Actualizar coordenada para etiqueta
+                cord_y_etiqueta_1 = ui_val.etiqueta_1.y() # Actualiar posición de la etique sin mover
 
             etiqueta.move(0, tmp_y) # Mover etiqueta a nueva posición
 
