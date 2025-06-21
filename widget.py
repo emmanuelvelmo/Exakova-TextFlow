@@ -20,29 +20,43 @@ vent_princ = PySide6.QtWidgets.QWidget() # Crea el widget principal de la aplica
 ui_val = ui_form.Ui_Widget() # Crea instancia de la interfaz de usuario
 ui_val.iniciar_ui(vent_princ) # Configura la interfaz en el widget principal
 
-# VARIABLES PARA REDIMENSIONAR
+# VARIABLES
+# Variables para redimensionar
 altura_panel_izquierdo = 1
 cord_y_etiqueta_1 = 0 # Extremo superior
 cord_y_etiqueta_2 = 0
 
-# VARIABLES DE RANGO DE PÁGINAS
+# Variables de rango de páginas
 pag_inicio = 0
 pag_fin = 0
+
+# Variables para el control de la barra de desplazamiento vertical
+scrollbar_pressed = False
+scrollbar_press_pos = 0
+scrollbar_press_value = 0
+
+altura_barra_desp = 0
+num_pags = 0
+cursor_pos = 0
+
+# Variables para manejo de archivos
+archivo_iter = None # Archivo PDF actualmente abierto
+doc = None # Documento PDF actual
+docs_dicc = {} # Diccionario que almacena todos los documentos abiertos por índice de tab
+pagina_arts = [] # Lista de elementos gráficos de páginas PDF
 
 # CONFIGURACIÓN DE LA INTERFAZ DE USUARIO
 # Calcular dimensiones de elementos
 def renderizar_etiquetas_areas():
     global altura_panel_izquierdo, cord_y_etiqueta_2
 
-    # Colocar etiquetas arrastrables y áreas de selección a los extremos superior e inferior de la ventana
+    # Colocar etiquetas arrastrables a los extremos superior e inferior de la ventana
     ui_val.etiqueta_1.move(0, 0) # Colocar en la parte superior
     ui_val.etiqueta_2.move(0, ui_val.panel_izquierdo.height() - ui_val.etiqueta_2.height()) # Colocar en la parte inferior
-    ui_val.area_1.move(0, ui_val.etiqueta_1.y()) # Colocar en la parte superior
-    ui_val.area_2.move(0, ui_val.etiqueta_2.y()) # Colocar en la parte inferior
 
     # Expandir áreas de selección horizontalmente
-    ui_val.area_1.setGeometry(0, ui_val.etiqueta_1.y(), vent_princ.width() - ui_val.panel_izquierdo.width(), ui_val.etiqueta_1.height())
-    ui_val.area_2.setGeometry(0, ui_val.etiqueta_2.y(), vent_princ.width() - ui_val.panel_izquierdo.width(), ui_val.etiqueta_2.height())
+    ui_val.area_1.setGeometry(0, 0, ui_val.visor_pdf.width(), ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height())
+    ui_val.area_2.setGeometry(0, ui_val.etiqueta_2.y(), ui_val.visor_pdf.width(), ui_val.visor_pdf.height() - ui_val.etiqueta_2.y())
 
     # Captura de dimensiones
     altura_panel_izquierdo = ui_val.panel_izquierdo.height() # Altura inicial del panel izquierdo
@@ -52,41 +66,140 @@ def renderizar_etiquetas_areas():
 PySide6.QtCore.QTimer.singleShot(0, renderizar_etiquetas_areas)
 
 # Configurar escena gráfica para PDF
-scene = PySide6.QtWidgets.QGraphicsScene() # Crea nueva escena gráfica
+escena = PySide6.QtWidgets.QGraphicsScene() # Crea nueva escena gráfica
 
-ui_val.visor_pdf.setScene(scene) # Asigna la escena a la vista PDF
+ui_val.visor_pdf.setScene(escena) # Asigna la escena a la vista PDF
 ui_val.visor_pdf.setRenderHints(PySide6.QtGui.QPainter.Antialiasing | PySide6.QtGui.QPainter.SmoothPixmapTransform | PySide6.QtGui.QPainter.TextAntialiasing) # Configura renderizado de alta calidad
-ui_val.visor_pdf.setAlignment(PySide6.QtCore.Qt.AlignCenter) # Centra el contenido en la vista
 
-# Configurar barras de desplazamiento
-ui_val.visor_pdf.setVerticalScrollBarPolicy(PySide6.QtCore.Qt.ScrollBarAsNeeded) # Muestra scrollbar vertical cuando sea necesario
-ui_val.visor_pdf.setHorizontalScrollBarPolicy(PySide6.QtCore.Qt.ScrollBarAlwaysOff) # Oculta scrollbar horizontal interno
+# Ocultar la barra de desplazamiento
+ui_val.barra_desp_vert.setVisible(False)
 
-# Configurar estilos de la barra de pestañas
-tab_close_button_style = """
-    QTabBar::close-button
-    {
-        subcontrol-origin: padding;
-        subcontrol-position: right;
-        width: 16px;
-        height: 16px;
-        margin-right: 2px;
-    }
 
-    QTabBar::close-button:hover
-    {
-        background: #505254;
-        border-radius: 2px;
-    }
-""" # Estilos CSS para el botón de cierre de tabs
 
-ui_val.barra_pestanas.setStyleSheet(ui_val.barra_pestanas.styleSheet() + tab_close_button_style) # Aplica los estilos al tab bar
 
-# VARIABLES GLOBALES
-archivo_iter = None # Archivo PDF actualmente abierto
-doc = None # Documento PDF actual
-docs_dicc = {} # Diccionario que almacena todos los documentos abiertos por índice de tab
-pagina_arts = [] # Lista de elementos gráficos de páginas PDF
+
+
+# FUNCIONES
+# Cambiar el tamaño de la barra vertical de desplazamiento
+def actualizar_barra_desp():
+    if not pagina_arts:  # Si no hay elementos de página en la lista
+        return # Salir de la función
+    else:
+        #
+
+
+        return
+
+
+
+
+    view_height = ui_val.visor_pdf.viewport().height()  # Obtener la altura visible del visor PDF
+    content_height = escena.sceneRect().height()  # Obtener la altura total del contenido en la escena
+
+    if content_height <= view_height:  # Si el contenido cabe completamente en la vista
+        ui_val.barra_desp_vert.setVisible(False)  # Ocultar la barra de desplazamiento
+        return  # Salir de la función
+
+
+    # Configurar el scrollbar
+    barra_desp = ui_val.barra_desp_vert  # Referencia a la barra de desplazamiento vertical
+
+    # Ajustar el tamaño del "pulgarcito" según el número de páginas
+    if doc:  # Si hay un documento cargado
+        num_pages = len(doc)  # Obtener el número total de páginas del documento
+        if num_pages > 0:  # Si hay al menos una página
+            # El tamaño del handle será 1/num_pages del área total
+            handle_size = int(barra_desp.height() / num_pages)  # Calcular tamaño proporcional del control deslizante
+            barra_desp.setStyleSheet(u"""  # Aplicar estilo CSS a la barra de desplazamiento
+                QScrollBar:vertical {
+                    background: #292a2b;
+                    width: 16px;
+                    border: none;
+                }
+                QScrollBar::handle:vertical {
+                    background: #404244;
+                    min-height: %dpx;
+                    border-radius: 2px;
+                }
+                QScrollBar::handle:vertical:hover {
+                    background: #505254;
+                }
+                QScrollBar::add-line:vertical,
+                QScrollBar::sub-line:vertical {
+                    background: none;
+                    border: none;
+                    height: 0px;
+                }
+                QScrollBar::add-page:vertical,
+                QScrollBar::sub-page:vertical {
+                    background: #292a2b;
+                }
+            """ % handle_size)  # Insertar el tamaño calculado en la plantilla de estilo
+
+    # Conectar señales para sincronizar el scrollbar personalizado con el nativo
+    barra_desp.valueChanged.connect(ui_val.visor_pdf.verticalScrollBar().setValue)  # Cuando cambie el valor del scrollbar personalizado, actualizar el nativo
+    ui_val.visor_pdf.verticalScrollBar().valueChanged.connect(barra_desp.setValue)  # Cuando cambie el valor del scrollbar nativo, actualizar el personalizado
+
+
+
+
+
+def scrollbar_press_event(event):
+    global scrollbar_pressed, scrollbar_press_pos, scrollbar_press_value
+    if event.button() == PySide6.QtCore.Qt.LeftButton:
+        scrollbar_pressed = True
+        scrollbar_press_pos = event.position().y()
+        scrollbar_press_value = ui_val.barra_desp_vert.value()
+        event.accept()
+    else:
+        event.ignore()
+
+def scrollbar_move_event(event):
+    global scrollbar_pressed
+    if scrollbar_pressed and doc:
+        num_pages = len(doc)
+        if num_pages > 0:
+            barra_desp = ui_val.barra_desp_vert
+            total_range = barra_desp.maximum() - barra_desp.minimum()
+            page_step = total_range / num_pages
+
+            delta = event.position().y() - scrollbar_press_pos
+            page_delta = int(delta / (barra_desp.height() / num_pages))
+
+            if page_delta != 0:
+                new_value = scrollbar_press_value + (page_step * page_delta)
+                new_value = max(barra_desp.minimum(), min(barra_desp.maximum(), new_value))
+                barra_desp.setValue(int(new_value))
+                scrollbar_press_pos = event.position().y()
+                scrollbar_press_value = new_value
+            event.accept()
+    else:
+        event.ignore()
+
+def scrollbar_release_event(event):
+    global scrollbar_pressed
+    if event.button() == PySide6.QtCore.Qt.LeftButton:
+        scrollbar_pressed = False
+        event.accept()
+    else:
+        event.ignore()
+
+
+
+
+
+
+# Asignar los eventos personalizados al scrollbar
+ui_val.barra_desp_vert.mousePressEvent = scrollbar_press_event
+ui_val.barra_desp_vert.mouseMoveEvent = scrollbar_move_event
+ui_val.barra_desp_vert.mouseReleaseEvent = scrollbar_release_event
+
+
+
+
+
+
+
 
 # FUNCIONES DE GESTIÓN DE INTERFAZ
 # Maneja el evento de redimensionamiento de la ventana
@@ -129,6 +242,8 @@ def evento_redimensionamiento(event):
         # Ajustar la vista
         ui_val.visor_pdf.fitInView(first_page, PySide6.QtCore.Qt.KeepAspectRatio)
 
+    #update_scrollbar()
+
 # Maneja el cambio de pestaña en la interfaz
 def cambiar_pestana(index):
     global doc, archivo_iter # Declara variables globales que se modificarán
@@ -138,7 +253,6 @@ def cambiar_pestana(index):
         archivo_iter = doc.name # Actualiza el archivo actual
 
         ventana_paginas_pdf() # Muestra las páginas del nuevo documento
-        centrar_paginas() # Centra la primera página
 
 # Cierra una pestaña abierta y gestiona los recursos asociados
 def cerrar_pestana(index):
@@ -156,19 +270,19 @@ def cerrar_pestana(index):
         archivo_iter = None # Reinicia el archivo actual
         doc = None # Reinicia el documento actual
 
-# Centra la primera página del documento en la vista
-def centrar_paginas():
-    if not pagina_arts: # Si no hay páginas cargadas
-        return # Sale de la función
 
-    PySide6.QtCore.QTimer.singleShot(50, lambda: ui_val.visor_pdf.fitInView(pagina_arts[0], PySide6.QtCore.Qt.KeepAspectRatio)) # Centra la primera página después de 50ms manteniendo proporción
+
+
+
+
 
 # Limpia la vista del PDF y reinicia los elementos relacionados
 def limpiar_vista_pdf():
     global pagina_arts # Declara variable global que se modificará
 
-    scene.clear() # Limpia todos los elementos de la escena
+    escena.clear() # Limpia todos los elementos de la escena
     pagina_arts = [] # Reinicia la lista de páginas
+    #update_scrollbar()
 
 # Ajusta el contenido del visor PDF
 def ajustar_contenido():
@@ -176,11 +290,19 @@ def ajustar_contenido():
         return # Sale de la función
 
     view_height = ui_val.visor_pdf.viewport().height() # Obtiene altura del viewport
-    content_height = scene.sceneRect().height() # Obtiene altura del contenido
+    content_height = escena.sceneRect().height() # Obtiene altura del contenido
 
     if pagina_arts:
         total_height = sum(item.pixmap().height() for item in pagina_arts)
-        scene.setSceneRect(PySide6.QtCore.QRectF(0, 0, pagina_arts[0].pixmap().width(), total_height))
+        escena.setSceneRect(PySide6.QtCore.QRectF(0, 0, pagina_arts[0].pixmap().width(), total_height))
+
+    #update_scrollbar()
+
+
+
+
+
+
 
 # FUNCIONES DE MANEJO DE ARCHIVOS
 # Abre uno o varios archivos PDF mediante un cuadro de diálogo
@@ -207,9 +329,19 @@ def cargar_pdf(archivo_dir):
         archivo_iter = archivo_dir # Actualiza el archivo actual
 
         ventana_paginas_pdf() # Muestra las páginas del PDF
-        centrar_paginas() # Centrar páginas
+
+        ui_val.barra_desp_vert.setVisible(True)  # Mostrar la barra de desplazamiento
     except Exception as e:
-        print(f"Error al cargar PDF: {e}") # Muestra error en consola si falla la carga
+        return #
+
+
+
+
+
+
+
+
+
 
 # Renderiza y muestra las páginas del PDF en la vista
 def ventana_paginas_pdf():
@@ -250,35 +382,23 @@ def ventana_paginas_pdf():
         pixmap = PySide6.QtGui.QPixmap.fromImage(image)
         item = PySide6.QtWidgets.QGraphicsPixmapItem(pixmap)
         item.setPos(0, y_pos)
-        scene.addItem(item)
+        escena.addItem(item)
         pagina_arts.append(item)
 
         y_pos += pixmap.height()
 
     if pagina_arts:
         total_height = y_pos
-        scene.setSceneRect(PySide6.QtCore.QRectF(0, 0, pagina_arts[0].pixmap().width(), total_height))
+        escena.setSceneRect(PySide6.QtCore.QRectF(0, 0, pagina_arts[0].pixmap().width(), total_height))
 
     # Configurar el scroll por página completa
-    #barra_desplazamiento = ui_val.visor_pdf.verticalScrollBar() # Obtiene una referencia al scrollbar vertical del visor PDF
-    #barra_desplazamiento.setSingleStep(pagina_arts[0].pixmap().height()) # Saltar por páginas con rueda
-    #barra_desplazamiento.setPageStep(pagina_arts[0].pixmap().height()) # Click en scroll/PageKeys
-
-    # Conectar el evento de rueda del mouse
     ui_val.visor_pdf.wheelEvent = voluta_desp
 
     # Ajustar la vista para que la primera página se vea completa
     if pagina_arts:
         ui_val.visor_pdf.fitInView(pagina_arts[0], PySide6.QtCore.Qt.KeepAspectRatio)
 
-# Exportar texto en PDF a TXT
-def exportar_txt():
-    if not archivo_iter: # Si no hay archivo actual
-        return # Sale de la función
-    else:
-        #
-
-        return
+    #update_scrollbar()
 
 #
 def voluta_desp(event):
@@ -289,13 +409,32 @@ def voluta_desp(event):
     delta = event.angleDelta().y()
 
     if delta > 0: # Scroll hacia arriba
-        # Ir a la página anterior
-        scroll_bar.setValue(scroll_bar.value() - scroll_bar.pageStep())
+        scroll_bar.setValue(scroll_bar.value() - scroll_bar.pageStep()) # Ir a la página anterior
     else: # Scroll hacia abajo
-        # Ir a la página siguiente
-        scroll_bar.setValue(scroll_bar.value() + scroll_bar.pageStep())
+        scroll_bar.setValue(scroll_bar.value() + scroll_bar.pageStep()) # Ir a la página siguiente
 
-    event.accept()
+    event.accept() #
+
+
+
+
+
+
+
+
+
+
+
+# Exportar texto en PDF a TXT
+def exportar_txt():
+    if not archivo_iter: # Si no hay archivo actual
+        return # Sale de la función
+    else:
+        #
+
+
+
+        return
 
 # FUNCIÓN PARA MANEJAR LOS LABELS ARRASTRABLES
 # Configura el comportamiento arrastrable de las etiquetas en el panel izquierdo
@@ -361,15 +500,13 @@ def configurar_etiquetas_arrastrables():
 
 # Aplicar márgen a todas las pestañas
 def aplicar_margen_pestanas():
-
-
-
-
+    #
 
 
     return
 
 # VENTANAS
+# Ventana de rango de páginas
 def ventana_rango_paginas():
     global pag_inicio, pag_fin
 
