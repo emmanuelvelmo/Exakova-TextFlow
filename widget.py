@@ -96,7 +96,7 @@ def cargar_pdf(archivo_dir):
         archivo_iter = archivo_dir # Actualiza el archivo actual
 
         pags_inicio[archivo_iter] = 1
-        pags_fin[archivo_iter] =  # Asignar página final a variable
+        pags_fin[archivo_iter] = len(doc) # Asignar el número total de páginas del documento
 
         ventana_paginas_pdf() # Muestra las páginas del PDF
     except Exception as e:
@@ -337,7 +337,7 @@ def configurar_barra_desp():
                 # Calcular píxeles de altura para una página del documento proporcionalmente a la altura del scroll
                 frac_pag = round(ui_val.visor_pdf.height() / num_pags)
 #########################################################################################################################
-                # = frac_pag # Asignar a barra en scroll la fracción de la altura de una sóla página
+                ui_val.barra_desp_vert.setPageStep(frac_pag) # Asignar a barra en scroll la fracción de la altura de una sóla página
                 ui_val.barra_desp_vert.setVisible(True) # Mostrar la barra de desplazamiento
 
     # Al presionar sobre el scroll
@@ -355,7 +355,7 @@ def configurar_barra_desp():
             if pag_actual != pos_pag:
 #########################################################################################################################
                 # Cargar nueva página
-
+                .(pos_pag)
 
                 # Actualizar página actual
                 pag_actual = pos_pag
@@ -367,11 +367,11 @@ def configurar_barra_desp():
         # Se presiona la barra y hay un documento abierto con 2 o más páginas
         if scrollbar_pressed and doc and num_pags > 1:
 #########################################################################################################################
-            # Mover la barra con el cursor
-
-
             # Obtener posición del cursor
             pos_cursor = evento.position().toPoint() # Posición actual del mouse
+#########################################################################################################################
+            # Mover la barra con el cursor
+            ui_val.barra_desp_vert.(pos_cursor)
 
             # Obtener número de página en base a altura del cursor
             pos_pag = int(pos_cursor.y() / frac_pag)
@@ -380,7 +380,7 @@ def configurar_barra_desp():
             if pag_actual != pos_pag:
 #########################################################################################################################
                 # Cargar nueva página
-
+                .(pos_pag)
 
                 # Actualizar página actual
                 pag_actual = pos_pag
