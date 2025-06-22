@@ -98,7 +98,10 @@ def cargar_pdf(archivo_dir):
         pags_inicio[archivo_iter] = 1
         pags_fin[archivo_iter] = len(doc) # Asignar el número total de páginas del documento
 
-        ventana_paginas_pdf() # Muestra las páginas del PDF
+        rango_paginas.input_inicio.setValue(1) #
+        rango_paginas.input_fin.setValue(pags_fin[archivo_iter]) #
+
+        ventana_paginas_pdf() # Muestra las páginas del PDF        
     except Exception as e:
         return #
 
@@ -144,7 +147,7 @@ def evento_redimensionamiento(event):
         ui_val.visor_pdf.fitInView(first_page, PySide6.QtCore.Qt.KeepAspectRatio)
 
     # Ajustar barra scroll si está habilitada
-    if barra_bool = True:
+    if ui_val.barra_desp_vert.isVisible():
         # Ajustar fracción por página
         frac_pag = round(ui_val.visor_pdf.height() / num_pags)
 
@@ -353,9 +356,8 @@ def configurar_barra_desp():
 
             # Cambiar página si aplica
             if pag_actual != pos_pag:
-#########################################################################################################################
                 # Cargar nueva página
-                .(pos_pag)
+                ui_val.visor_pdf.showPage(pos_pag)
 
                 # Actualizar página actual
                 pag_actual = pos_pag
@@ -369,18 +371,16 @@ def configurar_barra_desp():
 #########################################################################################################################
             # Obtener posición del cursor
             pos_cursor = evento.position().toPoint() # Posición actual del mouse
-#########################################################################################################################
             # Mover la barra con el cursor
-            ui_val.barra_desp_vert.(pos_cursor)
+            ui_val.barra_desp_vert.setValue(pos_cursor.y())
 
             # Obtener número de página en base a altura del cursor
             pos_pag = int(pos_cursor.y() / frac_pag)
 
             # Cambiar página si aplica
             if pag_actual != pos_pag:
-#########################################################################################################################
                 # Cargar nueva página
-                .(pos_pag)
+                ui_val.visor_pdf.showPage(pos_pag)
 
                 # Actualizar página actual
                 pag_actual = pos_pag
@@ -418,7 +418,7 @@ def exportar_txt():
         # Variables
 
         texto_docs = [] #
-        texto_pag =  #
+        texto_pag = "" #
 
 
 
@@ -427,38 +427,39 @@ def exportar_txt():
             # Iterar sobre cada archivo
             for iter_doc in docs_dicc:
                 # Obtener altura de la primera página
-
+                altura_pagina = pagina_arts[0].pixmap().height()
 
                 # Convertir la altura de los márgenes a fracción del total de la página (el mismo para todos los documentos)
-                margenes_superiores[0] =
-                margenes_inferiores[0] =
+#########################################################################################################################
+                margenes_superiores[0] = round(cord_y_etiqueta_1 / altura_pagina) # CORREGIR
+                margenes_inferiores[0] = round(cord_y_etiqueta_1 / altura_pagina) # CORREGIR
 
                 # Generar área de texto elegible en la página
-
+                area_texto = "" #
 
                 # Iterar sobre el rango de páginas del archivo
                 for pags_inicio[iter_doc] in pags_final[iter_doc]:
                     # Extraer texto del área (acumular progreseivamente página por página en variable)
-                    texto_pag =  #
+                    texto_pag = page.get_text("text", clip = area_texto) #
                     texto_docs[iter_doc] += texto_pag
         # Aplicar márgenes distintos a cada archivos
         else:
             # Iterar sobre cada archivo
             for iter_doc in docs_dicc:
                 # Obtener altura de la primera página
-
+                altura_pagina = pagina_arts[0].pixmap().height()
 
                 # Convertir la altura de los márgenes a fracción del total de la página (distinto para cada documento)
-                margenes_superiores[iter_doc] =
-                margenes_inferiores[iter_doc] =
+                margenes_superiores[0] = round(cord_y_etiqueta_1 / altura_pagina) # CORREGIR
+                margenes_inferiores[0] = round(cord_y_etiqueta_1 / altura_pagina) # CORREGIR
 
                 # Generar área de texto elegible en la página
-
+                area_texto = "" #
 
                 # Iterar sobre el rango de páginas del archivo
                 for pags_inicio[iter_doc] in pags_final[iter_doc]:
                     # Extraer texto del área (acumular progreseivamente página por página en variable)
-                    texto_pag =  #
+                    texto_pag = page.get_text("text", clip = area_texto) #
                     texto_docs[iter_doc] += texto_pag
 
         # Preguntar directorio dónde guardar archivo(s)
@@ -466,13 +467,13 @@ def exportar_txt():
 
         # Guardar archivos txt conservando el nombre de los archivos de referencia
         if dir_val:
-            # Guardar archivos txt conservando el nombre de los archivos de referencia
-            for  : #
-                ruta_txt = os.path.join(dir_val, f"{nombre_base}.txt")
+            # Iterar cada archivo del diccionario
+            for tab_index, doc in docs_dicc.items():
+                ruta_txt = os.path.join(dir_val, f"{os.path.splitext(os.path.basename(doc.name))[0]}.txt")
 
                 try:
                     with open(ruta_txt, 'w', encoding='utf-8') as f:
-                        f.write(texto)
+                        f.write(texto_docs[tab_index])
                 except Exception as e:
                     return
 
