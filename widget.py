@@ -1,3 +1,4 @@
+
 import sys # Módulo para funciones del sistema
 import os # Módulo para operaciones del sistema operativo
 import PySide6.QtWidgets # Módulo para widgets de UI
@@ -39,10 +40,9 @@ margenes_inferiores = []
 scrollbar_press_pos = 0 # ELIMINAR
 scrollbar_press_value = 0 # ELIMINAR
 scrollbar_pressed = False
-pag_actual = 0
-altura_barra_desp = 0
-num_pags = 0
-frac_pag = 0
+pag_actual = []
+num_pags = []
+frac_pag = []
 
 # Variables para manejo de archivos
 archivo_iter = None # Archivo PDF actualmente abierto
@@ -67,7 +67,6 @@ def renderizar_etiquetas_areas():
     # Captura de dimensiones
     altura_panel_izquierdo = ui_val.panel_izquierdo.height() # Altura inicial del panel izquierdo
     cord_y_etiqueta_2 = altura_panel_izquierdo # Extremo inferior del panel izquierdo
-    altura_barra_desp = ui_val.barra_desp_vert.height() #
 
 # Realizar dibujado y después calcular dimensiones
 PySide6.QtCore.QTimer.singleShot(0, renderizar_etiquetas_areas)
@@ -106,7 +105,7 @@ def cargar_pdf(archivo_dir):
 # FUNCIONES DE INTERFAZ
 # Maneja el evento de redimensionamiento de la ventana
 def evento_redimensionamiento(event):
-    global altura_panel_izquierdo, cord_y_etiqueta_1, cord_y_etiqueta_2
+    global altura_panel_izquierdo, cord_y_etiqueta_1, cord_y_etiqueta_2, num_pags, frac_pag
 
     # Calcular ratio del panel izquierdo después de redimensionar
     ratio_panel_izquierdo = ui_val.panel_izquierdo.height() / altura_panel_izquierdo
@@ -144,7 +143,13 @@ def evento_redimensionamiento(event):
         # Ajustar la vista
         ui_val.visor_pdf.fitInView(first_page, PySide6.QtCore.Qt.KeepAspectRatio)
 
-    #update_scrollbar()
+    # Ajustar barra scroll si está habilitada
+    if barra_bool = True:
+        # Ajustar fracción por página
+        frac_pag = round(ui_val.visor_pdf.height() / num_pags)
+
+        # Ajustar tamaño de la barra a la altura del visor PDF
+        ui_val.barra_desp_vert.setFixedHeight(ui_val.visor_pdf.height())
 
 # Limpia la vista del PDF y reinicia los elementos relacionados
 def limpiar_vista_pdf():
@@ -152,21 +157,6 @@ def limpiar_vista_pdf():
 
     escena.clear() # Limpia todos los elementos de la escena
     pagina_arts = [] # Reinicia la lista de páginas
-    #update_scrollbar()
-
-# Ajusta el contenido del visor PDF
-def ajustar_contenido():
-    if not doc or not pagina_arts: # Si no hay documento o páginas
-        return # Sale de la función
-
-    view_height = ui_val.visor_pdf.viewport().height() # Obtiene altura del viewport
-    content_height = escena.sceneRect().height() # Obtiene altura del contenido
-
-    if pagina_arts:
-        total_height = sum(item.pixmap().height() for item in pagina_arts)
-        escena.setSceneRect(PySide6.QtCore.QRectF(0, 0, pagina_arts[0].pixmap().width(), total_height))
-
-    #update_scrollbar()
 
 # Maneja el cambio de pestaña en la interfaz
 def cambiar_pestana(index):
@@ -177,6 +167,7 @@ def cambiar_pestana(index):
         archivo_iter = doc.name # Actualiza el archivo actual
 
         ventana_paginas_pdf() # Muestra las páginas del nuevo documento
+        configurar_barra_desp() # Reconfigura la barra de desplazamiento
 
 # Cierra una pestaña abierta y gestiona los recursos asociados
 def cerrar_pestana(index):
@@ -249,7 +240,8 @@ def ventana_paginas_pdf():
     if pagina_arts:
         ui_val.visor_pdf.fitInView(pagina_arts[0], PySide6.QtCore.Qt.KeepAspectRatio)
 
-    #update_scrollbar()
+    # Configurar scrollbar
+    configurar_barra_desp()
 
 # CONFIGURACIONES PERSONALIZADAS
 # Comportamiento de voluta del mouse
@@ -332,21 +324,21 @@ def configurar_etiquetas_arrastrables():
 def configurar_barra_desp():
     # Cambiar el tamaño de la barra vertical de desplazamiento
     def actualizar_barra_desp():
-        global altura_barra_desp, num_pags
+        global altura_barra_desp, num_pags, frac_pag, pag_actual
 
         if not pagina_arts: # Si no hay elementos de página en la lista
             return # Salir de la función
         else:
             # Obtener número de páginas del documento
-            num_pags =
+            num_pags = len(doc) if doc else 0
 
             # Por lo menos más de una página en documento
             if num_pags > 1:
-                # Calcular píxeles de altura para cada página del documento proporcionalmente a la altura del scroll
-                frac_pag = round(altura_barra_desp / num_pags)
-
-                 = frac_pag # Asignar a barra en scroll la fracción de la altura de una sóla página
-                 ui_val.barra_desp_vert.setVisible(True) # Mostrar la barra de desplazamiento
+                # Calcular píxeles de altura para una página del documento proporcionalmente a la altura del scroll
+                frac_pag = round(ui_val.visor_pdf.height() / num_pags)
+#########################################################################################################################
+                # = frac_pag # Asignar a barra en scroll la fracción de la altura de una sóla página
+                ui_val.barra_desp_vert.setVisible(True) # Mostrar la barra de desplazamiento
 
     # Al presionar sobre el scroll
     def scrollbar_press_event(event):
@@ -361,6 +353,7 @@ def configurar_barra_desp():
 
             # Cambiar página si aplica
             if pag_actual != pos_pag:
+#########################################################################################################################
                 # Cargar nueva página
 
 
@@ -373,6 +366,7 @@ def configurar_barra_desp():
 
         # Se presiona la barra y hay un documento abierto con 2 o más páginas
         if scrollbar_pressed and doc and num_pags > 1:
+#########################################################################################################################
             # Mover la barra con el cursor
 
 
@@ -384,6 +378,7 @@ def configurar_barra_desp():
 
             # Cambiar página si aplica
             if pag_actual != pos_pag:
+#########################################################################################################################
                 # Cargar nueva página
 
 
@@ -422,7 +417,8 @@ def exportar_txt():
     else:
         # Variables
 
-        texto_docs = {} #
+        texto_docs = [] #
+        texto_pag =  #
 
 
 
@@ -442,8 +438,9 @@ def exportar_txt():
 
                 # Iterar sobre el rango de páginas del archivo
                 for pags_inicio[iter_doc] in pags_final[iter_doc]:
-                # Extraer texto del área (acumular progreseivamente página por página en variable)
-
+                    # Extraer texto del área (acumular progreseivamente página por página en variable)
+                    texto_pag =  #
+                    texto_docs[iter_doc] += texto_pag
         # Aplicar márgenes distintos a cada archivos
         else:
             # Iterar sobre cada archivo
@@ -460,13 +457,24 @@ def exportar_txt():
 
                 # Iterar sobre el rango de páginas del archivo
                 for pags_inicio[iter_doc] in pags_final[iter_doc]:
-                # Extraer texto del área (acumular progreseivamente página por página en variable)
+                    # Extraer texto del área (acumular progreseivamente página por página en variable)
+                    texto_pag =  #
+                    texto_docs[iter_doc] += texto_pag
 
         # Preguntar directorio dónde guardar archivo(s)
-
+        dir_val = PySide6.QtWidgets.QFileDialog.getExistingDirectory(vent_princ, "Export File(s)")
 
         # Guardar archivos txt conservando el nombre de los archivos de referencia
+        if dir_val:
+            # Guardar archivos txt conservando el nombre de los archivos de referencia
+            for  : #
+                ruta_txt = os.path.join(dir_val, f"{nombre_base}.txt")
 
+                try:
+                    with open(ruta_txt, 'w', encoding='utf-8') as f:
+                        f.write(texto)
+                except Exception as e:
+                    return
 
 # Aplicar márgen a todas las pestañas
 def aplicar_margen_pestanas():
