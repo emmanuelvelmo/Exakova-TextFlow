@@ -1,4 +1,3 @@
-
 import sys # Módulo para funciones del sistema
 import os # Módulo para operaciones del sistema operativo
 import PySide6.QtWidgets # Módulo para widgets de UI
@@ -28,8 +27,8 @@ cord_y_etiqueta_1 = 0 # Extremo superior
 cord_y_etiqueta_2 = 0
 
 # Variables de rango de páginas
-pags_inicio = []
-pags_fin = []
+pags_inicio = {}
+pags_fin = {}
 
 # Variables de margenes
 margen_bool = True
@@ -41,8 +40,8 @@ scrollbar_press_pos = 0 # ELIMINAR
 scrollbar_press_value = 0 # ELIMINAR
 scrollbar_pressed = False
 pag_actual = []
-num_pags = []
-frac_pag = []
+num_pags = {}
+frac_pag = {}
 
 # Variables para manejo de archivos
 archivo_iter = None # Archivo PDF actualmente abierto
@@ -95,15 +94,13 @@ def cargar_pdf(archivo_dir):
         doc = nuevo_doc # Actualiza el documento actual
         archivo_iter = archivo_dir # Actualiza el archivo actual
 
-        pags_inicio[archivo_iter] = 1
-        pags_fin[archivo_iter] = len(doc) # Asignar el número total de páginas del documento
+        # Agregar rango de páginas del documento al diccionario
+        pags_inicio[tab_indice] = 1
+        pags_fin[tab_indice] = len(doc) # Asignar el número total de páginas del documento
 
-        rango_paginas.input_inicio.setValue(1) #
-        rango_paginas.input_fin.setValue(pags_fin[archivo_iter]) #
-
-        ventana_paginas_pdf() # Muestra las páginas del PDF        
+        ventana_paginas_pdf(tab_indice) # Muestra las páginas del PDF
     except Exception as e:
-        return #
+        pass #
 
 # FUNCIONES DE INTERFAZ
 # Maneja el evento de redimensionamiento de la ventana
@@ -169,8 +166,7 @@ def cambiar_pestana(index):
         doc = docs_dicc[index] # Cambia al documento del tab seleccionado
         archivo_iter = doc.name # Actualiza el archivo actual
 
-        ventana_paginas_pdf() # Muestra las páginas del nuevo documento
-        configurar_barra_desp() # Reconfigura la barra de desplazamiento
+        ventana_paginas_pdf(index) # Muestra las páginas del nuevo documento
 
 # Cierra una pestaña abierta y gestiona los recursos asociados
 def cerrar_pestana(index):
@@ -189,64 +185,54 @@ def cerrar_pestana(index):
         doc = None # Reinicia el documento actual
 
 # Renderiza y muestra las páginas del PDF en la vista
-def ventana_paginas_pdf():
-    global pagina_arts
+def ventana_paginas_pdf(indice_val):
+    global pagina_arts, num_pags
 
     if not doc:
-        return
+        pass
+    else:
+        y_pos = 0
+        pagina_arts = [] # Reiniciar la lista de páginas # CONSIDERAR ELIMINAR
 
-    limpiar_vista_pdf()
+        # Obtener el número de páginas y almacenarlo en el diccionario
+        num_pags[indice_val] = len(doc)
 
-    y_pos = 0
+        viewport_height = ui_val.visor_pdf.viewport().height()
+        viewport_width = ui_val.visor_pdf.viewport().width()
 
-    # Obtener el tamaño disponible del visor PDF
-    viewport_height = ui_val.visor_pdf.viewport().height()
-    viewport_width = ui_val.visor_pdf.viewport().width()
+        for page_num in range(num_pags[indice_val]): # Usar el valor del diccionario
+            page = doc.load_page(page_num)
+            page_rect = page.rect
+            page_width = page_rect.width
+            page_height = page_rect.height
 
-    for page_num in range(len(doc)):
-        page = doc.load_page(page_num)
+            scale_factor = viewport_height / page_height
+            if (page_width * scale_factor) > viewport_width:
+                scale_factor = viewport_width / page_width
 
-        # Calcular la escala necesaria para que la página se ajuste al alto del visor
-        page_rect = page.rect
-        page_width = page_rect.width
-        page_height = page_rect.height
+            matrix = fitz.Matrix(scale_factor, scale_factor)
+            pix = page.get_pixmap(matrix=matrix)
+            image = PySide6.QtGui.QImage(pix.samples, pix.width, pix.height, pix.stride, PySide6.QtGui.QImage.Format_RGB888)
+            pixmap = PySide6.QtGui.QPixmap.fromImage(image)
+            item = PySide6.QtWidgets.QGraphicsPixmapItem(pixmap)
+            item.setPos(0, y_pos)
+            escena.addItem(item)
+            pagina_arts.append(item)
+            y_pos += pixmap.height()
 
-        # Calcular factor de escala basado en la altura del visor
-        scale_factor = viewport_height / page_height
+        if pagina_arts:
+            total_height = y_pos
+            escena.setSceneRect(PySide6.QtCore.QRectF(0, 0, pagina_arts[0].pixmap().width(), total_height))
+            ui_val.visor_pdf.fitInView(pagina_arts[0], PySide6.QtCore.Qt.KeepAspectRatio)
 
-        # Asegurarse de que también se ajuste al ancho si es necesario
-        if (page_width * scale_factor) > viewport_width:
-            scale_factor = viewport_width / page_width
+        ui_val.visor_pdf.wheelEvent = voluta_desp
 
-        # Renderizar con la escala calculada
-        matrix = fitz.Matrix(scale_factor, scale_factor)
-        pix = page.get_pixmap(matrix=matrix)
-
-        image = PySide6.QtGui.QImage(pix.samples,pix.width,pix.height,pix.stride,PySide6.QtGui.QImage.Format_RGB888)
-
-        pixmap = PySide6.QtGui.QPixmap.fromImage(image)
-        item = PySide6.QtWidgets.QGraphicsPixmapItem(pixmap)
-        item.setPos(0, y_pos)
-        escena.addItem(item)
-        pagina_arts.append(item)
-
-        y_pos += pixmap.height()
-
-    if pagina_arts:
-        total_height = y_pos
-        escena.setSceneRect(PySide6.QtCore.QRectF(0, 0, pagina_arts[0].pixmap().width(), total_height))
-
-    # Configurar el scroll por página completa
-    ui_val.visor_pdf.wheelEvent = voluta_desp
-
-    # Ajustar la vista para que la primera página se vea completa
-    if pagina_arts:
-        ui_val.visor_pdf.fitInView(pagina_arts[0], PySide6.QtCore.Qt.KeepAspectRatio)
-
-    # Configurar scrollbar
-    configurar_barra_desp()
+        # Verificar si hay más de una página usando el diccionario
+        if num_pags[indice_val] > 1:
+            configurar_barra_desp(indice_val) #
 
 # CONFIGURACIONES PERSONALIZADAS
+#############################################################################################################
 # Comportamiento de voluta del mouse
 def voluta_desp(event):
     # Obtener la barra de desplazamiento vertical
@@ -257,8 +243,10 @@ def voluta_desp(event):
 
     if delta > 0: # Scroll hacia arriba
         scroll_bar.setValue(scroll_bar.value() - scroll_bar.pageStep()) # Ir a la página anterior
+        # Actualizar posición de la barra scroll
     else: # Scroll hacia abajo
         scroll_bar.setValue(scroll_bar.value() + scroll_bar.pageStep()) # Ir a la página siguiente
+        # Actualizar posición de la barra scroll
 
     event.accept() #
 
@@ -324,13 +312,15 @@ def configurar_etiquetas_arrastrables():
     ui_val.panel_izquierdo.mouseReleaseEvent = evento_soltar_raton # Asigna función para soltar ratón
 
 # Comportamiento de scroll
-def configurar_barra_desp():
+def configurar_barra_desp(indice_val):
+    ui_val.barra_desp_vert.setVisible(True) # Mostrar la barra scroll
+
     # Cambiar el tamaño de la barra vertical de desplazamiento
     def actualizar_barra_desp():
         global altura_barra_desp, num_pags, frac_pag, pag_actual
 
         if not pagina_arts: # Si no hay elementos de página en la lista
-            return # Salir de la función
+            pass
         else:
             # Obtener número de páginas del documento
             num_pags = len(doc) if doc else 0
@@ -338,7 +328,7 @@ def configurar_barra_desp():
             # Por lo menos más de una página en documento
             if num_pags > 1:
                 # Calcular píxeles de altura para una página del documento proporcionalmente a la altura del scroll
-                frac_pag = round(ui_val.visor_pdf.height() / num_pags)
+                frac_pag = round(ui_val.visor_pdf.height() / num_pags[indice_val])
 #########################################################################################################################
                 ui_val.barra_desp_vert.setPageStep(frac_pag) # Asignar a barra en scroll la fracción de la altura de una sóla página
                 ui_val.barra_desp_vert.setVisible(True) # Mostrar la barra de desplazamiento
@@ -347,7 +337,7 @@ def configurar_barra_desp():
     def scrollbar_press_event(event):
         global scrollbar_pressed, scrollbar_press_pos, scrollbar_press_value, y_inicial
 
-        if event.button() == PySide6.QtCore.Qt.LeftButton and num_pags > 1: #
+        if event.button() == PySide6.QtCore.Qt.LeftButton: #
             scrollbar_pressed = True #
             pos_cursor = evento.position().toPoint() # Posición actual del mouse
 
@@ -401,11 +391,11 @@ def configurar_barra_desp():
 # FUNCIONES DE ACCIONES
 # Abre uno o varios archivos PDF mediante un cuadro de diálogo
 def abrir_pdf():
-    archivos_ruta, _ = PySide6.QtWidgets.QFileDialog.getOpenFileNames(vent_princ, "Open PDF(s)", "", "PDF Files (*.pdf)") # Abre diálogo para seleccionar archivos PDF
+    archivos_ruta, filtro_val = PySide6.QtWidgets.QFileDialog.getOpenFileNames(vent_princ, "Open PDF(s)", "xx", "PDF Files (*.pdf)") # Abre diálogo para seleccionar archivos PDF
 
     if archivos_ruta: # Si se seleccionaron archivos
         # Itera sobre cada archivo seleccionado
-        for archivo_dir in archivos_ruta: # Itera sobre cada archivo seleccionado
+        for archivo_dir in archivos_ruta: # Itera sobre cada ruta seleccionada
             cargar_pdf(archivo_dir) # Carga cada archivo PDF
 
 # Exportar texto en PDF a TXT
@@ -491,15 +481,21 @@ def ventana_rango_paginas():
     ventana = rango_paginas.rango_paginas_ui() # Crear la ventana (no visible aún)
     ventana.ventana_ui() # Configurar la interfaz (añadir widgets, estilos, etc.)
 
+    # Asignar el rango de páginas para el documento según el diccionario
+    #rango_paginas.input_inicio.setValue(pags_inicio[tab_indice]) #
+    #rango_paginas.input_fin.setValue(pags_fin[tab_indice]) #
+
+
     if ventana.exec() == PySide6.QtWidgets.QDialog.Accepted: # Si el usuario hizo clic en "OK"
-        pags_inicio, pags_fin = ventana.obtener_rango() # Asigna los valores a las variables globales
+        #pags_inicio[], pags_fin[] = ventana.obtener_rango() # Asigna los valores a las variables globales
+        pass
 
 # Ventana "Acerca de"
 def ventana_acerca_de():
-    ventana = acerca_de.acerca_de_ui()
+    ventana = acerca_de.acerca_de_ui() #
 
-    ventana.ventana_ui()
-    ventana.exec()
+    ventana.ventana_ui() #
+    ventana.exec() #
 
 # CONEXIONES DE EVENTOS Y SEÑALES
 # Conectar acciones del menú
