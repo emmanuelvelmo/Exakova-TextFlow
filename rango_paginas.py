@@ -120,7 +120,7 @@ class rango_paginas_ui(PySide6.QtWidgets.QDialog):
 
         # Establecer valores por defecto
         self.input_inicio.setValue(1)
-        self.input_fin.setValue(1)
+        self.input_fin.setValue(2)
 
     #
     def obtener_rango(self):

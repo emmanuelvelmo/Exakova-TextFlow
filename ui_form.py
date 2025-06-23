@@ -10,24 +10,6 @@ class Ui_Widget(object):
         Widget.setStyleSheet(u"background-color: #1f1f1f;") # Fondo oscuro para la ventana
         Widget.setWindowTitle("Exakova TextFlow") # Texto del título de ventana
 
-        # Creación de acciones (items de menú)
-        self.accion_abrir = PySide6.QtGui.QAction(Widget) # Acción para abrir archivos
-        self.accion_abrir.setText("Open") # Texto de la acción
-
-        self.accion_exportar = PySide6.QtGui.QAction(Widget) # Acción para exportar
-        self.accion_exportar.setText("Export") # Texto de la acción
-
-        self.accion_aplicar_margen_todas_pestanas = PySide6.QtGui.QAction(Widget) # Acción para aplicar márgenes
-        self.accion_aplicar_margen_todas_pestanas.setCheckable(True) # Convertir en toggle
-        self.accion_aplicar_margen_todas_pestanas.setChecked(True) # Activar por defecto
-        self.accion_aplicar_margen_todas_pestanas.setText("Apply Margins to All Tabs") # Texto de la acción
-
-        self.accion_rango_paginas = PySide6.QtGui.QAction(Widget) # Acción para exportar
-        self.accion_rango_paginas.setText("Pages Range") # Texto de la acción
-
-        self.accion_acerca_de = PySide6.QtGui.QAction(Widget) # Acción para información
-        self.accion_acerca_de.setText("About Exakova TextFlow") # Texto de la acción
-
         # Configuración del layout principal (organización vertical)
         self.layout_vertical = PySide6.QtWidgets.QVBoxLayout(Widget) # Layout vertical
         self.layout_vertical.setSpacing(0) # Sin espacio entre widgets
@@ -38,7 +20,6 @@ class Ui_Widget(object):
         self.barra_menu.setMinimumSize(PySide6.QtCore.QSize(0, 20)) # Altura mínima
         self.barra_menu.setMaximumSize(PySide6.QtCore.QSize(16777215, 20)) # Altura fija
         self.barra_menu.setNativeMenuBar(False) # Usar menú de Qt, no del sistema
-        # Estilo CSS para la barra de menú
         self.barra_menu.setStyleSheet(u"""
             QMenuBar
             {
@@ -77,18 +58,36 @@ class Ui_Widget(object):
                 border: 1px solid #50a0f0;
                 padding-left: 23px;
             }
-        """)
+        """) # Estilo CSS para la barra de menú
+
+        # Creación de acciones (items de menú)
+        self.accion_abrir = PySide6.QtGui.QAction(Widget) # Acción para abrir archivos
+        self.accion_abrir.setText("Open") # Texto de la acción
+
+        self.accion_exportar = PySide6.QtGui.QAction(Widget) # Acción para exportar
+        self.accion_exportar.setText("Export") # Texto de la acción
+
+        self.accion_aplicar_margen_todas_pestanas = PySide6.QtGui.QAction(Widget) # Acción para aplicar márgenes
+        self.accion_aplicar_margen_todas_pestanas.setCheckable(True) # Convertir en toggle
+        self.accion_aplicar_margen_todas_pestanas.setChecked(True) # Activar por defecto
+        self.accion_aplicar_margen_todas_pestanas.setText("Apply Margins to All Tabs") # Texto de la acción
+
+        self.accion_rango_paginas = PySide6.QtGui.QAction(Widget) # Acción para exportar
+        self.accion_rango_paginas.setText("Pages Range") # Texto de la acción
+
+        self.accion_acerca_de = PySide6.QtGui.QAction(Widget) # Acción para información
+        self.accion_acerca_de.setText("About Exakova TextFlow") # Texto de la acción
 
         # Menú Archivo (File)
         self.menu_archivo = PySide6.QtWidgets.QMenu(self.barra_menu) # Crear menú Archivo
         self.menu_archivo.setTitle("File") # Título del menú
+
         self.menu_archivo.addAction(self.accion_abrir) # Añadir acción "Abrir"
         self.menu_archivo.addAction(self.accion_exportar) # Añadir acción "Exportar"
 
         # Menú Selección (Select)
         self.menu_seleccion = PySide6.QtWidgets.QMenu(self.barra_menu) # Crear menú Selección
         self.menu_seleccion.setTitle("Select") # Título del menú
-        # Estilo específico para este menú
         self.menu_seleccion.setStyleSheet(u"""
             QMenu
             {
@@ -125,7 +124,7 @@ class Ui_Widget(object):
                 background-color: #2c73ba;
                 border: 1px solid #505254;
             }
-        """)
+        """) # Estilo específico para este menú
 
         self.menu_seleccion.addAction(self.accion_aplicar_margen_todas_pestanas) # Añadir acción "Aplicar Margen a Todas las Pestañas"
         self.menu_seleccion.addAction(self.accion_rango_paginas) #
@@ -133,6 +132,7 @@ class Ui_Widget(object):
         # Menú Ayuda (Help)
         self.menu_ayuda = PySide6.QtWidgets.QMenu(self.barra_menu) # Crear menú Ayuda
         self.menu_ayuda.setTitle("Help") # Título del menú
+
         self.menu_ayuda.addAction(self.accion_acerca_de) # Añadir acción "Acerca de"
 
         # Añadir menús a la barra de menú
@@ -213,39 +213,28 @@ class Ui_Widget(object):
         # Visor PDF
         self.visor_pdf = PySide6.QtWidgets.QGraphicsView() # Crear visor PDF
         self.visor_pdf.setStyleSheet(u"""
-        QGraphicsView {
+            QGraphicsView
+            {
                 background-color: #1f1f1f;
                 border: none;
             }
-            QScrollBar:vertical {
-                background: #292a2b;
-                width: 16px;
-                border: none;
-            }
-            QScrollBar::handle:vertical {
-                background: #404244;
-                min-height: 20px;
-                border-radius: 2px;
-            }
-            QScrollBar::handle:vertical:hover {
-                background: #505254;
-            }
-            QScrollBar::add-line:vertical,
-            QScrollBar::sub-line:vertical {
-                background: none;
-                border: none;
-                height: 0px;
-            }
-            QScrollBar::add-page:vertical,
-            QScrollBar::sub-page:vertical {
-                background: #292a2b;
-            }
-        """) # Estilo con scrollbar personalizado
+        """)
 
-        self.layout_horizontal.addWidget(self.visor_pdf) # Añadir visor PDF al layout
-
-        self.visor_pdf.setAlignment(PySide6.QtCore.Qt.AlignCenter) # Centrar contenido
         self.visor_pdf.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Expanding, PySide6.QtWidgets.QSizePolicy.Expanding) # Política de tamaño
+
+        # Deshabilitar scrollbars por defecto
+        self.visor_pdf.setVerticalScrollBarPolicy(PySide6.QtCore.Qt.ScrollBarAlwaysOff)
+        self.visor_pdf.setHorizontalScrollBarPolicy(PySide6.QtCore.Qt.ScrollBarAlwaysOff)
+
+        self.layout_horizontal.addWidget(self.visor_pdf) # Añadir visor PDF a layout_horizontal
+
+        # Scrollbar personalizado
+        self.barra_desp_vert = PySide6.QtWidgets.QScrollBar(PySide6.QtCore.Qt.Vertical)
+
+        self.barra_desp_vert.mousePressEvent = lambda event: None # Deshabilitar el arrastre con click izquierdo
+        self.barra_desp_vert.setVisible(False) # Ocultar la barra de desplazamiento
+
+        self.layout_horizontal.addWidget(self.barra_desp_vert) # Añadir scroll bar a layout_horizontal
 
         # Áreas de selección de texto
         self.area_1 = PySide6.QtWidgets.QLabel(self.visor_pdf) # Primer área de selección

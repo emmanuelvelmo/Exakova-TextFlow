@@ -36,10 +36,7 @@ margenes_superiores = []
 margenes_inferiores = []
 
 # Variables para el control de la barra de desplazamiento vertical
-scrollbar_press_pos = 0 # ELIMINAR
-scrollbar_press_value = 0 # ELIMINAR
-scrollbar_pressed = False
-pag_actual = []
+pag_actual = {}
 num_pags = {}
 frac_pag = {}
 
@@ -76,9 +73,6 @@ escena = PySide6.QtWidgets.QGraphicsScene() # Crea nueva escena gráfica
 ui_val.visor_pdf.setScene(escena) # Asigna la escena a la vista PDF
 ui_val.visor_pdf.setRenderHints(PySide6.QtGui.QPainter.Antialiasing | PySide6.QtGui.QPainter.SmoothPixmapTransform | PySide6.QtGui.QPainter.TextAntialiasing) # Configura renderizado de alta calidad
 
-# Ocultar la barra de desplazamiento
-ui_val.barra_desp_vert.setVisible(False)
-
 # FUNCIONES DE MANEJO DE ARCHIVOS
 # Carga un archivo PDF en una nueva pestaña
 def cargar_pdf(archivo_dir):
@@ -104,7 +98,7 @@ def cargar_pdf(archivo_dir):
 
 # FUNCIONES DE INTERFAZ
 # Maneja el evento de redimensionamiento de la ventana
-def evento_redimensionamiento(event):
+def evento_redimensionamiento(evento):
     global altura_panel_izquierdo, cord_y_etiqueta_1, cord_y_etiqueta_2, num_pags, frac_pag
 
     # Calcular ratio del panel izquierdo después de redimensionar
@@ -144,12 +138,34 @@ def evento_redimensionamiento(event):
         ui_val.visor_pdf.fitInView(first_page, PySide6.QtCore.Qt.KeepAspectRatio)
 
     # Ajustar barra scroll si está habilitada
-    if ui_val.barra_desp_vert.isVisible():
+    #if ui_val.barra_desp_vert.isVisible():
         # Ajustar fracción por página
-        frac_pag = round(ui_val.visor_pdf.height() / num_pags)
+        #frac_pag = round(ui_val.visor_pdf.height() / num_pags[])
 
-        # Ajustar tamaño de la barra a la altura del visor PDF
-        ui_val.barra_desp_vert.setFixedHeight(ui_val.visor_pdf.height())
+        # Asignar a barra en scroll la fracción de la altura de una sóla página y estilo
+        #ui_val.barra_desp_vert.setStyleSheet(f"""
+        """
+            QScrollBar:vertical
+            {{
+                width: 16px;
+            }}
+
+            QScrollBar::handle:vertical
+            {{
+                background: #404244;
+                min-height: {frac_pag}px; /* Altura dinámica */
+            }}
+
+            QScrollBar::handle:vertical:hover
+            {{
+                background: #505254;
+            }}
+
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
+            {{
+                background: #292a2b;
+            }}
+        """#)
 
 # Limpia la vista del PDF y reinicia los elementos relacionados
 def limpiar_vista_pdf():
@@ -159,34 +175,39 @@ def limpiar_vista_pdf():
     pagina_arts = [] # Reinicia la lista de páginas
 
 # Maneja el cambio de pestaña en la interfaz
-def cambiar_pestana(index):
+def cambiar_pestana(indice_val):
     global doc, archivo_iter # Declara variables globales que se modificarán
 
-    if index >= 0 and index in docs_dicc: # Verifica que el índice sea válido y exista en docs_dicc
-        doc = docs_dicc[index] # Cambia al documento del tab seleccionado
+    if indice_val >= 0 and indice_val in docs_dicc: # Verifica que el índice sea válido y exista en docs_dicc
+        doc = docs_dicc[indice_val] # Cambia al documento del tab seleccionado
         archivo_iter = doc.name # Actualiza el archivo actual
 
-        ventana_paginas_pdf(index) # Muestra las páginas del nuevo documento
+        ventana_paginas_pdf(indice_val) # Muestra las páginas del nuevo documento
 
 # Cierra una pestaña abierta y gestiona los recursos asociados
-def cerrar_pestana(index):
+def cerrar_pestana(indice_val):
     global archivo_iter, doc # Declara variables globales que se modificarán
 
-    if index in docs_dicc: # Si el índice existe en docs_dicc
-        docs_dicc[index].close() # Cierra el documento
+    if indice_val in docs_dicc: # Si el índice existe en docs_dicc
+        docs_dicc[indice_val].close() # Cierra el documento
 
-        del docs_dicc[index] # Elimina el documento del diccionario
+        del docs_dicc[indice_val] # Elimina el documento del diccionario
 
-    ui_val.barra_pestanas.removeTab(index) # Remueve el tab de la barra
+    ui_val.barra_pestanas.removeTab(indice_val) # Remueve el tab de la barra
 
     if ui_val.barra_pestanas.count() == 0: # Si no quedan tabs abiertos
         limpiar_vista_pdf() # Limpia la vista PDF
+
+        ui_val.barra_desp_vert.setVisible(False) # Ocultar la barra scroll
+
         archivo_iter = None # Reinicia el archivo actual
         doc = None # Reinicia el documento actual
 
 # Renderiza y muestra las páginas del PDF en la vista
 def ventana_paginas_pdf(indice_val):
-    global pagina_arts, num_pags
+    global pagina_arts, num_pags, pag_actual
+
+    pag_actual[indice_val] = 1 # Actualizar a primera página en diccionario
 
     if not doc:
         pass
@@ -234,12 +255,12 @@ def ventana_paginas_pdf(indice_val):
 # CONFIGURACIONES PERSONALIZADAS
 #############################################################################################################
 # Comportamiento de voluta del mouse
-def voluta_desp(event):
+def voluta_desp(evento):
     # Obtener la barra de desplazamiento vertical
     scroll_bar = ui_val.visor_pdf.verticalScrollBar()
 
     # Determinar la dirección del scroll (positivo = abajo, negativo = arriba)
-    delta = event.angleDelta().y()
+    delta = evento.angleDelta().y()
 
     if delta > 0: # Scroll hacia arriba
         scroll_bar.setValue(scroll_bar.value() - scroll_bar.pageStep()) # Ir a la página anterior
@@ -248,7 +269,7 @@ def voluta_desp(event):
         scroll_bar.setValue(scroll_bar.value() + scroll_bar.pageStep()) # Ir a la página siguiente
         # Actualizar posición de la barra scroll
 
-    event.accept() #
+    evento.accept() #
 
 # Comportamiento de etiquetas en panel izquierdo
 def configurar_etiquetas_arrastrables():
@@ -277,6 +298,8 @@ def configurar_etiquetas_arrastrables():
                     datos_arrastre['posicion_inicial_y'] = etiqueta.y() # Guardar posición inicial
 
                     break
+
+            evento.accept() #
 
     # Maneja el evento de movimiento del ratón para arrastrar etiquetas
     def evento_mover_raton(evento):
@@ -313,54 +336,78 @@ def configurar_etiquetas_arrastrables():
 
 # Comportamiento de scroll
 def configurar_barra_desp(indice_val):
-    ui_val.barra_desp_vert.setVisible(True) # Mostrar la barra scroll
+    global altura_barra_desp, num_pags, frac_pag
 
-    # Cambiar el tamaño de la barra vertical de desplazamiento
-    def actualizar_barra_desp():
-        global altura_barra_desp, num_pags, frac_pag, pag_actual
+    # Variables
+    scrollbar_pressed = False
+    scrollbar_press_pos = 0
+    scrollbar_press_value = 0
 
-        if not pagina_arts: # Si no hay elementos de página en la lista
-            pass
-        else:
-            # Obtener número de páginas del documento
-            num_pags = len(doc) if doc else 0
+    # Alto en píxeles de una página respecto a la altura de scrollbar
+    frac_pag = round(ui_val.visor_pdf.height() / num_pags[indice_val])
 
-            # Por lo menos más de una página en documento
-            if num_pags > 1:
-                # Calcular píxeles de altura para una página del documento proporcionalmente a la altura del scroll
-                frac_pag = round(ui_val.visor_pdf.height() / num_pags[indice_val])
-#########################################################################################################################
-                ui_val.barra_desp_vert.setPageStep(frac_pag) # Asignar a barra en scroll la fracción de la altura de una sóla página
-                ui_val.barra_desp_vert.setVisible(True) # Mostrar la barra de desplazamiento
+    # Asignar a barra en scroll la fracción de la altura de una sóla página y estilo
+    ui_val.barra_desp_vert.setStyleSheet(f"""
+        QScrollBar:vertical
+        {{
+            width: 16px;
+        }}
+
+        QScrollBar::handle:vertical
+        {{
+            background: #404244;
+            min-height: {frac_pag}px; /* Altura dinámica */
+        }}
+
+        QScrollBar::handle:vertical:hover
+        {{
+            background: #505254;
+        }}
+
+        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
+        {{
+            background: #292a2b;
+        }}
+    """)
+
+    # Mostrar la barra scroll
+    ui_val.barra_desp_vert.setVisible(True)
 
     # Al presionar sobre el scroll
-    def scrollbar_press_event(event):
-        global scrollbar_pressed, scrollbar_press_pos, scrollbar_press_value, y_inicial
+    def scrollbar_press_event(evento):
+        global frac_pag, pag_actual, pagina_arts
 
-        if event.button() == PySide6.QtCore.Qt.LeftButton: #
+        if evento.button() == PySide6.QtCore.Qt.LeftButton: #
             scrollbar_pressed = True #
-            pos_cursor = evento.position().toPoint() # Posición actual del mouse
+
+            # Obtener posición del cursor
+            pos_cursor = evento.position().toPoint()
 
             # Obtener número de página en base a altura del cursor
             pos_pag = int(pos_cursor.y() / frac_pag)
 
             # Cambiar página si aplica
-            if pag_actual != pos_pag:
-                # Cargar nueva página
-                ui_val.visor_pdf.showPage(pos_pag)
+            if pag_actual[indice_val] != pos_pag:
+                # Cambiar a nueva página
+                ui_val.visor_pdf.centerOn(pagina_arts[pos_pag])
 
                 # Actualizar página actual
-                pag_actual = pos_pag
+                pag_actual[indice_val] = pos_pag
+
+                # Mover handler a posición
+                ui_val.barra_desp_vert.setValue(pos_pag * frac_pag)
+
+            evento.accept() #
 
     # Al mover la barra de scroll
-    def scrollbar_move_event(event):
-        global scrollbar_pressed, num_pags, frac_pag, pag_actual
+    def scrollbar_move_event(evento):
+        global num_pags, frac_pag, pag_actual
 
-        # Se presiona la barra y hay un documento abierto con 2 o más páginas
-        if scrollbar_pressed and doc and num_pags > 1:
-#########################################################################################################################
+        # Se presiona el handler
+        if scrollbar_pressed:
             # Obtener posición del cursor
-            pos_cursor = evento.position().toPoint() # Posición actual del mouse
+            pos_cursor = evento.position().toPoint()
+
             # Mover la barra con el cursor
             ui_val.barra_desp_vert.setValue(pos_cursor.y())
 
@@ -368,20 +415,23 @@ def configurar_barra_desp(indice_val):
             pos_pag = int(pos_cursor.y() / frac_pag)
 
             # Cambiar página si aplica
-            if pag_actual != pos_pag:
-                # Cargar nueva página
-                ui_val.visor_pdf.showPage(pos_pag)
+            if pag_actual[indice_val] != pos_pag:
+                # Cambiar a nueva página
+                ui_val.visor_pdf.centerOn(pagina_arts[pos_pag])
 
                 # Actualizar página actual
-                pag_actual = pos_pag
+                pag_actual[indice_val] = pos_pag
 
-    def scrollbar_release_event(event):
+            evento.accept() #
+
+    # Soltar el botón izquierdo del mouse
+    def scrollbar_release_event(evento):
         global scrollbar_pressed
 
-        if event.button() == PySide6.QtCore.Qt.LeftButton:
+        if evento.button() == PySide6.QtCore.Qt.LeftButton:
             scrollbar_pressed = False
 
-            event.accept()
+            evento.accept() #
 
     # Asignar los eventos personalizados al scrollbar
     ui_val.barra_desp_vert.mousePressEvent = scrollbar_press_event
@@ -391,7 +441,7 @@ def configurar_barra_desp(indice_val):
 # FUNCIONES DE ACCIONES
 # Abre uno o varios archivos PDF mediante un cuadro de diálogo
 def abrir_pdf():
-    archivos_ruta, filtro_val = PySide6.QtWidgets.QFileDialog.getOpenFileNames(vent_princ, "Open PDF(s)", "xx", "PDF Files (*.pdf)") # Abre diálogo para seleccionar archivos PDF
+    archivos_ruta, filtro_val = PySide6.QtWidgets.QFileDialog.getOpenFileNames(vent_princ, "Open PDF(s)", "", "PDF Files (*.pdf)") # Abre diálogo para seleccionar archivos PDF
 
     if archivos_ruta: # Si se seleccionaron archivos
         # Itera sobre cada archivo seleccionado
@@ -458,12 +508,12 @@ def exportar_txt():
         # Guardar archivos txt conservando el nombre de los archivos de referencia
         if dir_val:
             # Iterar cada archivo del diccionario
-            for tab_index, doc in docs_dicc.items():
+            for indice_val, doc in docs_dicc.items():
                 ruta_txt = os.path.join(dir_val, f"{os.path.splitext(os.path.basename(doc.name))[0]}.txt")
 
                 try:
                     with open(ruta_txt, 'w', encoding='utf-8') as f:
-                        f.write(texto_docs[tab_index])
+                        f.write(texto_docs[indice_val])
                 except Exception as e:
                     return
 
