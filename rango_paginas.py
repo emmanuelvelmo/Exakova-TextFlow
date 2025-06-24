@@ -42,7 +42,6 @@ class rango_paginas_ui(PySide6.QtWidgets.QDialog):
 
         # Campo página inicial
         self.input_inicio = PySide6.QtWidgets.QSpinBox()
-        self.input_inicio.setRange(1, 9999)
         self.input_inicio.setStyleSheet("""
             QSpinBox {
                 background-color: #1f1f1f;
@@ -59,7 +58,6 @@ class rango_paginas_ui(PySide6.QtWidgets.QDialog):
 
         # Campo página final
         self.input_fin = PySide6.QtWidgets.QSpinBox()
-        self.input_fin.setRange(1, 9999)
         self.input_fin.setStyleSheet(self.input_inicio.styleSheet())
         self.layout_inputs.addRow("End page:", self.input_fin)
 
@@ -117,10 +115,6 @@ class rango_paginas_ui(PySide6.QtWidgets.QDialog):
         self.layout_botones.addWidget(self.boton_aceptar)
 
         self.layout_principal.addWidget(self.contenedor_botones)
-
-        # Establecer valores por defecto
-        self.input_inicio.setValue(1)
-        self.input_fin.setValue(2)
 
     #
     def obtener_rango(self):
