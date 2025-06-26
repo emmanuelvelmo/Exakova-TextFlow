@@ -664,8 +664,6 @@ def ventana_rango_paginas():
         ventana.inicio_tmp = pags_inicio_export[indice_actual]
         ventana.fin_tmp = pags_fin_export[indice_actual]
 
-        print(ventana.inicio_tmp, ventana.fin_tmp)
-
         if ventana.exec() == PySide6.QtWidgets.QDialog.Accepted: # Si el usuario hizo clic en "OK"
             pags_inicio_export[indice_actual], pags_fin_export[indice_actual] = ventana.obtener_rango() # Asigna los valores a las variables globales
 
