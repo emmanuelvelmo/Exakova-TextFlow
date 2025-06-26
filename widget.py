@@ -36,21 +36,43 @@ margenes_superiores = {}
 margenes_inferiores = {}
 
 # Variables para el control de la barra de desplazamiento vertical
-pag_actual = {}
+pag_actual = {} # La página en la que nos encontramos en cada pestaña
 num_pags = {}
-frac_pag = {}
 
 # Múltiples eventos
-indice_actual = 0 # Documento actual
+indice_actual = 0 # Pestaña en la que se encuentra el usuario
 
 # Variables para manejo de archivos
 archivo_iter = None # Archivo PDF actualmente abierto
 doc_actual = None # Documento PDF actual
 docs_dicc = {} # Diccionario que almacena todos los documentos abiertos por índice de tab
 paginas_contenedor = [] # Lista de elementos gráficos de páginas PDF
-pags_actuales = {} # Página actual de cada pestaña (se actualiza al cambiar de página)
 
 # CONFIGURACIÓN DE LA INTERFAZ DE USUARIO
+# Ocultar controles para el documento
+def ocultar_controles():
+    ui_val.barra_desp_vert.setVisible(False) # Ocultar la barra scroll
+    ui_val.panel_izquierdo.hide() # Ocultar panel izquierdo
+    ui_val.etiqueta_1.hide() # Ocultar etiquetas arrastrables
+    ui_val.etiqueta_2.hide() # Ocultar etiquetas arrastrables
+    ui_val.area_1.hide() # Ocultar área de selección superior
+    ui_val.area_2.hide() # Ocultar área de selección inferior
+
+# Mostrar controles para el documento
+def mostrar_controles():
+    ui_val.panel_izquierdo.show() # Mostrar panel izquierdo
+    ui_val.etiqueta_1.show() # Mostrar etiquetas arrastrables
+    ui_val.etiqueta_2.show() # Mostrar etiquetas arrastrables
+    ui_val.area_1.show() # Mostrar área de selección inferior
+    ui_val.area_2.show() # Mostrar área de selección inferior
+
+    # Establece posiciones de etiquetas y áreas de selección
+    ui_val.etiqueta_1.move(0, 0)
+    ui_val.etiqueta_2.move(0, ui_val.visor_pdf.height() - ui_val.etiqueta_2.height())
+
+    ui_val.area_1.setGeometry(0, 0, ui_val.visor_pdf.width(), ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height())
+    ui_val.area_2.setGeometry(0, ui_val.etiqueta_2.y(), ui_val.visor_pdf.width(), ui_val.visor_pdf.height() - ui_val.etiqueta_2.y())
+
 # Calcular dimensiones de elementos
 def renderizar_etiquetas_areas():
     global altura_panel_izquierdo, cord_y_etiqueta_2
@@ -79,36 +101,50 @@ ui_val.visor_pdf.setRenderHints(PySide6.QtGui.QPainter.Antialiasing | PySide6.Qt
 # FUNCIONES DE MANEJO DE ARCHIVOS
 # Carga un archivo PDF en una nueva pestaña
 def cargar_pdf(archivo_dir):
-    global doc_actual, docs_dicc, archivo_iter # Declara variables globales que se modificarán
+    global doc_actual, docs_dicc, archivo_iter, pags_inicio, pags_fin, margenes_superiores, margenes_inferiores, margen_bool # Declara variables globales que se modificarán
 
     try:
         nuevo_doc = fitz.open(archivo_dir) # Abre el archivo PDF con PyMuPDF en memoria
 
         # El archivo no se encuentra previamente cargado
-        if os.path.basename(archivo_dir) not in [os.path.basename(doc_iter.name) for doc_iter in docs_dicc.values() if hasattr(doc_iter, 'name')]:
-            indice_val = ui_val.barra_pestanas.addTab(os.path.basename(archivo_dir)) # Añade nueva pestaña con nombre del archivo
-            docs_dicc[indice_val] = nuevo_doc # Almacena el documento en el diccionario
-            ui_val.barra_pestanas.setCurrentIndex(indice_val) # Cambia al tab recién creado
+        if os.path.basename(archivo_dir) not in [os.path.basename(doc_iter.name) for doc_iter in docs_dicc.values()]:
+            indice_carg = ui_val.barra_pestanas.addTab(os.path.basename(archivo_dir)) # Añade nueva pestaña con nombre del archivo
 
-            doc_actual = nuevo_doc # Actualiza el documento actual
-            archivo_iter = archivo_dir # Actualiza el archivo actual
+            docs_dicc[indice_carg] = nuevo_doc # Almacena el documento en el diccionario
 
+            doc_actual = nuevo_doc # Actualiza el documento actual ######################################
+            archivo_iter = archivo_dir # Actualiza el archivo actual ####################################
+
+            # Asignar valores por defecto a la nueva clave en los diccionarios
             # Agregar rango de páginas del documento al diccionario
-            pags_inicio[indice_val] = 1
-            pags_fin[indice_val] = len(doc_actual) # Asignar el número total de páginas del documento
+            pags_inicio[indice_carg] = 1
+            pags_fin[indice_carg] = len(doc_actual) # Asignar el número total de páginas del documento
 
-            ventana_paginas_pdf(indice_val) # Muestra las páginas del PDF
+            # Establecer valores para márgenes
+            if margen_bool and len(docs_dicc) > 1: # Usar los valores de la pestaña anterior
+                margenes_superiores[indice_carg] = margenes_superiores[indice_carg - 1] #
+                margenes_inferiores[indice_carg] = margenes_inferiores[indice_carg - 1] #
+            else: # Usar valores por defecto
+                margenes_superiores[indice_carg] = ui_val.etiqueta_1.height() #
+                margenes_inferiores[indice_carg] = ui_val.visor_pdf.height() - ui_val.etiqueta_2.height() #
 
-            # Guardar valores de márgenes
-            margenes_superiores[indice_val] = ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height()
-            margenes_superiores[indice_val] = ui_val.etiqueta_2.y()
+            # Última página vista en el documento
+            pag_actual[indice_carg] = 0 #
+
+            #
+            if len(docs_dicc) == 1:
+                mostrar_controles()
+
+            ui_val.barra_pestanas.setCurrentIndex(indice_carg) # Cambia al tab recién creado
+
+            ventana_paginas_pdf(indice_carg) # Muestra las páginas del PDF
     except Exception as e:
         pass #
 
 # FUNCIONES DE INTERFAZ
 # Maneja el evento de redimensionamiento de la ventana
 def evento_redimensionamiento(evento):
-    global altura_panel_izquierdo, cord_y_etiqueta_1, cord_y_etiqueta_2, num_pags, frac_pag, indice_actual
+    global altura_panel_izquierdo, cord_y_etiqueta_1, cord_y_etiqueta_2, num_pags, indice_actual
 
     # Calcular ratio del panel izquierdo después de redimensionar
     ratio_panel_izquierdo = ui_val.panel_izquierdo.height() / altura_panel_izquierdo
@@ -127,7 +163,7 @@ def evento_redimensionamiento(evento):
 
     # Guardar valores de márgenes
     margenes_superiores[indice_actual] = ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height()
-    margenes_superiores[indice_actual] = ui_val.etiqueta_2.y()
+    margenes_inferiores[indice_actual] = ui_val.etiqueta_2.y()
 
     if doc_actual and paginas_contenedor:
         # Ajustar todas las páginas al nuevo tamaño
@@ -135,17 +171,17 @@ def evento_redimensionamiento(evento):
         viewport_width = ui_val.visor_pdf.viewport().width()
 
         first_page = paginas_contenedor[0]
-        first_page_pixmap = first_page.pixmap()
-        page_ratio = first_page_pixmap.width() / first_page_pixmap.height()
+        first_pag_pixmap = first_page.pixmap()
+        pag_ratio = first_pag_pixmap.width() / first_pag_pixmap.height()
 
         # Calcular nuevo tamaño manteniendo relación de aspecto
         new_height = viewport_height
-        new_width = new_height * page_ratio
+        new_width = new_height * pag_ratio
 
         # Si es más ancho que el viewport, ajustar al ancho
         if new_width > viewport_width:
             new_width = viewport_width
-            new_height = new_width / page_ratio
+            new_height = new_width / pag_ratio
 
         # Ajustar la vista
         ui_val.visor_pdf.fitInView(first_page, PySide6.QtCore.Qt.KeepAspectRatio)
@@ -189,44 +225,66 @@ def limpiar_vista_pdf():
 
 # Maneja el cambio de pestaña en la interfaz
 def cambiar_pestana(indice_tab):
-    global doc_actual, archivo_iter, indice_actual # Declara variables globales que se modificarán
+    global doc_actual, archivo_iter, indice_actual, docs_dicc, margenes_superiores, margenes_inferiores # Declara variables globales que se modificarán
 
-    if indice_tab >= 0 and indice_tab in docs_dicc: # Verifica que el índice sea válido y exista en docs_dicc
+    if indice_tab in docs_dicc: # Verifica que el índice sea válido y exista en docs_dicc
         doc_actual = docs_dicc[indice_tab] # Cambia al documento del tab seleccionado
         archivo_iter = doc_actual.name # Actualiza el archivo actual
 
-        indice_actual = indice_tab # Actualizar índice de documento
+        ventana_paginas_pdf(indice_tab) # Muestra las páginas del nuevo documento
 
-        ventana_paginas_pdf(indice_actual) # Muestra las páginas del nuevo documento
+        # Cambiar de posición las etiquetas arrastrables y sus áreas
+        if not margen_bool:
+            ui_val.etiqueta_1.move(0, margenes_superiores[indice_tab] - ui_val.etiqueta_1.height())
+            ui_val.etiqueta_2.move(0, margenes_inferiores[indice_tab])
+
+            ui_val.area_1.setGeometry(0, 0, ui_val.visor_pdf.width(), ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height())
+            ui_val.area_2.setGeometry(0, ui_val.etiqueta_2.y(), ui_val.visor_pdf.width(), ui_val.visor_pdf.height() - ui_val.etiqueta_2.y())
 
 # Cierra una pestaña abierta y gestiona los recursos asociados
 def cerrar_pestana(indice_val):
-    global archivo_iter, doc_actual # Declara variables globales que se modificarán
+    global archivo_iter, doc_actual, docs_dicc, pags_inicio, pags_fin, margenes_superiores, margenes_inferiores, pag_actual, num_pags # Declara variables globales que se modificarán
 
-    if indice_val in docs_dicc: # Si el índice existe en docs_dicc
-        docs_dicc[indice_val].close() # Cierra el documento
+    docs_dicc[indice_val].close() # Cierra el documento
 
-        del docs_dicc[indice_val] # Elimina el documento del diccionario
+    # Eliminar datos asociados al documento en todos los diccionarios
+    del docs_dicc[indice_val] # Elimina el documento del diccionario de documentos
+    del pags_inicio [indice_val] #
+    del pags_fin [indice_val] #
+    del margenes_superiores [indice_val] #
+    del margenes_inferiores [indice_val] #
+    del pag_actual [indice_val] #
+    del num_pags [indice_val] #
+
+    # Restar una posición a las claves de los diccionarios a partir del índice más uno
+    docs_dicc = {i: v for i, (_, v) in enumerate(sorted(docs_dicc.items()))}
+    pags_inicio = {i: v for i, (_, v) in enumerate(sorted(pags_inicio.items()))}
+    pags_fin = {i: v for i, (_, v) in enumerate(sorted(pags_fin.items()))}
+    margenes_superiores = {i: v for i, (_, v) in enumerate(sorted(margenes_superiores.items()))}
+    margenes_inferiores = {i: v for i, (_, v) in enumerate(sorted(margenes_inferiores.items()))}
+    pag_actual = {i: v for i, (_, v) in enumerate(sorted(pag_actual.items()))}
+    num_pags = {i: v for i, (_, v) in enumerate(sorted(num_pags.items()))}
 
     ui_val.barra_pestanas.removeTab(indice_val) # Remueve el tab de la barra
 
     if ui_val.barra_pestanas.count() == 0: # Si no quedan tabs abiertos
         limpiar_vista_pdf() # Limpia la vista PDF
 
-        ui_val.barra_desp_vert.setVisible(False) # Ocultar la barra scroll
+        # Ocultar controles
+        ocultar_controles()
 
         archivo_iter = None # Reinicia el archivo actual
         doc_actual = None # Reinicia el documento actual
 
 # Renderiza y muestra las páginas del PDF en la vista
 def ventana_paginas_pdf(indice_val):
-    global paginas_contenedor, num_pags, pag_actual
-
-    pag_actual[indice_val] = 1 # Actualizar a primera página en diccionario
+    global paginas_contenedor, num_pags, pag_actual, indice_actual
 
     if doc_actual:
         y_pos = 0
-        paginas_contenedor = [] # Reiniciar la lista de páginas # CONSIDERAR ELIMINAR
+        paginas_contenedor = [] # Reiniciar la lista de páginas
+
+        indice_actual = indice_val # Actualizar índice de documento
 
         # Obtener el número de páginas y almacenarlo en el diccionario
         num_pags[indice_val] = len(doc_actual)
@@ -234,15 +292,15 @@ def ventana_paginas_pdf(indice_val):
         viewport_height = ui_val.visor_pdf.viewport().height()
         viewport_width = ui_val.visor_pdf.viewport().width()
 
-        for page_num in range(num_pags[indice_val]): # Usar el valor del diccionario
-            page = doc_actual.load_page(page_num)
-            page_rect = page.rect
-            page_width = page_rect.width
-            page_height = page_rect.height
+        for pag_num in range(num_pags[indice_val]): # Usar el valor del diccionario
+            page = doc_actual.load_page(pag_num)
+            pag_rect = page.rect
+            pag_width = pag_rect.width
+            pag_height = pag_rect.height
 
-            scale_factor = viewport_height / page_height
-            if (page_width * scale_factor) > viewport_width:
-                scale_factor = viewport_width / page_width
+            scale_factor = viewport_height / pag_height
+            if (pag_width * scale_factor) > viewport_width:
+                scale_factor = viewport_width / pag_width
 
             matrix = fitz.Matrix(scale_factor, scale_factor)
             pix = page.get_pixmap(matrix=matrix)
@@ -256,18 +314,20 @@ def ventana_paginas_pdf(indice_val):
 
         if paginas_contenedor:
             total_height = y_pos
-            escena.setSceneRect(PySide6.QtCore.QRectF(0, 0, paginas_contenedor[0].pixmap().width(), total_height))
-            ui_val.visor_pdf.fitInView(paginas_contenedor[0], PySide6.QtCore.Qt.KeepAspectRatio)
+            escena.setSceneRect(PySide6.QtCore.QRectF(0, 0, paginas_contenedor[0].pixmap().width(), total_height)) #
+            ui_val.visor_pdf.fitInView(paginas_contenedor[pag_actual[indice_actual]], PySide6.QtCore.Qt.KeepAspectRatio) #
 
-        ui_val.visor_pdf.wheelEvent = voluta_desp
+        ui_val.visor_pdf.wheelEvent = voluta_desp #
 
-        # Verificar si hay más de una página usando el diccionario
+        # Verificar si hay más de una página en el diccionario
         if num_pags[indice_val] > 1:
             configurar_barra_desp(indice_val) #
 
 # CONFIGURACIONES PERSONALIZADAS
 # Comportamiento de voluta del mouse
 def voluta_desp(evento):
+    global pag_actual, indice_actual
+
     # Obtener la barra de desplazamiento vertical
     scroll_bar = ui_val.visor_pdf.verticalScrollBar()
 
@@ -276,10 +336,20 @@ def voluta_desp(evento):
 
     if delta > 0: # Scroll hacia arriba
         scroll_bar.setValue(scroll_bar.value() - scroll_bar.pageStep()) # Ir a la página anterior
+
+        # Actualiza página actual en documento
+        pag_actual[indice_actual] = max(0, pag_actual[indice_actual] - 1)
+
         # Actualizar posición de la barra scroll
+
     else: # Scroll hacia abajo
         scroll_bar.setValue(scroll_bar.value() + scroll_bar.pageStep()) # Ir a la página siguiente
+
+        # Actualiza página actual en documento
+        pag_actual[indice_actual] = min(num_pags[indice_actual] - 1, pag_actual[indice_actual] + 1)
+
         # Actualizar posición de la barra scroll
+
 
     evento.accept() #
 
@@ -315,7 +385,7 @@ def configurar_etiquetas_arrastrables():
 
     # Maneja el evento de movimiento del ratón para arrastrar etiquetas
     def evento_mover_raton(evento):
-        global cord_y_etiqueta_1, cord_y_etiqueta_2, indice_actual
+        global cord_y_etiqueta_1, cord_y_etiqueta_2, indice_actual, margenes_superiores, margenes_inferiores
 
         if datos_arrastre['arrastrando'] and datos_arrastre['etiqueta_actual']:
             etiqueta = datos_arrastre['etiqueta_actual'] # Etiqueta siendo arrastrada
@@ -327,13 +397,27 @@ def configurar_etiquetas_arrastrables():
                 ui_val.area_1.setGeometry(0, 0, ui_val.area_1.width(), tmp_y + etiqueta.height()) #
                 cord_y_etiqueta_1 = tmp_y # Actualizar coordenada para etiqueta
                 cord_y_etiqueta_2 = ui_val.etiqueta_2.y() + ui_val.etiqueta_2.height() # Actualiar posición de la etique sin mover
-                margenes_superiores[indice_actual] = ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height() # Actualizar margen
+
+                # Actualizar márgenes según el caso
+                if margen_bool:
+                    # Iterar todos los márgenes
+                    for iter_val in margenes_superiores:
+                        margenes_superiores[iter_val] = ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height()
+                else:
+                    margenes_superiores[indice_actual] = ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height()
             else: # Para etiqueta inferior
                 tmp_y = max(ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height(), min(tmp_y, ui_val.panel_izquierdo.height() - etiqueta.height())) # Límites
                 ui_val.area_2.setGeometry(0, tmp_y, ui_val.area_2.width(), vent_princ.height() - tmp_y - ui_val.barra_menu.height() - ui_val.barra_pestanas.height()) #
                 cord_y_etiqueta_2 = tmp_y + ui_val.etiqueta_2.height() # Actualizar coordenada para etiqueta
                 cord_y_etiqueta_1 = ui_val.etiqueta_1.y() # Actualiar posición de la etique sin mover
-                margenes_superiores[indice_actual] = ui_val.etiqueta_2.y() # Actualizar margen
+
+                # Actualizar márgenes según el caso
+                if margen_bool:
+                    # Iterar todos los márgenes
+                    for iter_val in margenes_inferiores:
+                        margenes_inferiores[iter_val] = ui_val.etiqueta_2.y()
+                else:
+                    margenes_inferiores[indice_actual] = ui_val.etiqueta_2.y()
 
             etiqueta.move(0, tmp_y) # Mover etiqueta a nueva posición
 
@@ -350,7 +434,7 @@ def configurar_etiquetas_arrastrables():
 
 # Comportamiento de scroll
 def configurar_barra_desp(indice_val):
-    global altura_barra_desp, num_pags, frac_pag
+    global altura_barra_desp, num_pags
 
     # Variables
     scrollbar_pressed = False
@@ -389,7 +473,7 @@ def configurar_barra_desp(indice_val):
 
     # Al presionar sobre el scroll
     def scrollbar_press_event(evento):
-        global frac_pag, pag_actual, paginas_contenedor
+        global pag_actual, paginas_contenedor
 
         if evento.button() == PySide6.QtCore.Qt.LeftButton: #
             scrollbar_pressed = True #
@@ -415,7 +499,7 @@ def configurar_barra_desp(indice_val):
 
     # Al mover la barra de scroll
     def scrollbar_move_event(evento):
-        global num_pags, frac_pag, pag_actual
+        global num_pags, pag_actual
 
         # Se presiona el handler
         if scrollbar_pressed:
@@ -464,14 +548,12 @@ def abrir_pdf():
 
 # Exportar texto en PDF a TXT
 def exportar_txt():
-    global margen_bool, docs_dicc
+    global margen_bool, docs_dicc, paginas_contenedor, margenes_superiores, margenes_inferiores
 
     if docs_dicc:
         # Variables
-        texto_docs = [] #
+        texto_docs = {} #
         texto_pag = "" #
-
-
 
         # Aplica el mismo margen para todos los archivos
         if margen_bool:
@@ -484,21 +566,23 @@ def exportar_txt():
                 cord_y1 = margenes_superiores[0] / altura_pagina
                 cord_y2 = margenes_inferiores[0] / altura_pagina
 
-
-
-
-
-
-
-
-                # Generar área de texto elegible en la página
-                area_texto = "" #
-
                 # Iterar sobre el rango de páginas del archivo
-                for pags_inicio[iter_doc] in pags_final[iter_doc]:
-                    # Extraer texto del área (acumular progreseivamente página por página en variable)
-                    texto_pag = page.get_text("text", clip = area_texto) #
-                    texto_docs[iter_doc] += texto_pag
+                for pag_num in range(pags_inicio[iter_doc] - 1, pags_fin[iter_doc]):
+                    pag_val = docs_dicc[iter_doc].load_page(pag_num) #
+                    pag_rect = pag_val.rect #
+
+                    # Definir área de recorte (mitad central horizontal, márgenes verticales personalizados)
+                    clip_rect = fitz.Rect(pag_rect.width, pag_rect.height * cord_y1, pag_rect.width, pag_rect.height * cord_y2)
+
+                    # Extraer texto del área definida
+                    texto_pag = pag_val.get_text("text", clip = clip_rect) #
+                    #texto_docs[iter_doc] += texto_pag + "\n" #
+
+
+
+
+
+
         # Aplicar márgenes distintos a cada archivos
         else:
             # Iterar sobre cada archivo
@@ -511,13 +595,13 @@ def exportar_txt():
                 #margenes_inferiores[] = round(cord_y_etiqueta_2 / altura_pagina) # CORREGIR
 
                 # Generar área de texto elegible en la página
-                area_texto = "" #
+                #area_texto = "" #
 
                 # Iterar sobre el rango de páginas del archivo
-                for pags_inicio[iter_doc] in pags_final[iter_doc]:
+                #for pags_inicio[iter_doc] in pags_fin[iter_doc]:
                     # Extraer texto del área (acumular progreseivamente página por página en variable)
-                    texto_pag = page.get_text("text", clip = area_texto) #
-                    texto_docs[iter_doc] += texto_pag
+                    #texto_pag = page.get_text("text", clip = area_texto) #
+                    #texto_docs[iter_doc] += texto_pag
 
         # Preguntar directorio dónde guardar archivo(s)
         dir_val = PySide6.QtWidgets.QFileDialog.getExistingDirectory(vent_princ, "Export File(s)")
@@ -536,9 +620,19 @@ def exportar_txt():
 
 # Aplicar márgen a todas las pestañas
 def aplicar_margen_pestanas():
-    global margen_bool
+    global margen_bool, indice_actual
 
     margen_bool = not margen_bool # Invertir el valor del bool
+
+    # Establecer los mismos márgenes para los diccionarios de márgenes
+    if margen_bool and len(docs_dicc) > 0:
+        margen_superior_tmp = margenes_superiores[indice_actual]
+        margen_inferior_tmp = margenes_inferiores[indice_actual]
+
+        # Iterar todos los márgenes
+        for iter_val in margenes_superiores:
+            margenes_superiores[iter_val] = margen_superior_tmp
+            margenes_inferiores[iter_val] = margen_inferior_tmp
 
 # VENTANAS
 # Ventana de rango de páginas
@@ -583,8 +677,12 @@ ui_val.barra_pestanas.currentChanged.connect(cambiar_pestana) # Conecta la seña
 original_resize_event = vent_princ.resizeEvent # Guarda el evento original de redimensionamiento
 vent_princ.resizeEvent = lambda event: (original_resize_event(event), evento_redimensionamiento(event)) # Combina evento original con handler personalizado
 
+# CONFIGURACIONES DE LA GUI
 # Configurar los labels arrastrables
 configurar_etiquetas_arrastrables()
+
+# Ocultar controles al inicio
+ocultar_controles()
 
 # PUNTO DE PARTIDA DE LA APLICACIÓN
 vent_princ.show() # Muestra la ventana principal
