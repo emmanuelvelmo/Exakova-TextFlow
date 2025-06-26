@@ -5,6 +5,10 @@ import PySide6.QtWidgets
 #
 class rango_paginas_ui(PySide6.QtWidgets.QDialog):
     def ventana_ui(self):
+        # Variables
+        inicio_tmp = 1
+        fin_tmp = 1
+
         # Configuración básica de la ventana
         self.setObjectName("rango_paginas_ui")
         self.resize(300, 180)
@@ -118,5 +122,13 @@ class rango_paginas_ui(PySide6.QtWidgets.QDialog):
 
     #
     def obtener_rango(self):
-        # Devuelve tupla con (inicio, fin)
-        return self.input_inicio.value(), self.input_fin.value()
+        #
+        if self.input_inicio.value() <= self.input_fin.value():
+            # Actualizar variables
+            self.inicio_tmp = self.input_inicio.value()
+            self.fin_tmp = self.input_fin.value()
+
+            # Devuelve tupla con (inicio, fin)
+            return self.inicio_tmp, self.fin_tmp
+        else:
+            return self.inicio_tmp, self.fin_tmp

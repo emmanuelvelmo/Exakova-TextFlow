@@ -27,8 +27,10 @@ cord_y_etiqueta_1 = 0 # Extremo superior
 cord_y_etiqueta_2 = 0
 
 # Variables de rango de páginas
-pags_inicio = {}
-pags_fin = {}
+pags_inicio_export = {}
+pags_fin_export = {}
+pags_inicio_estatico = {}
+pags_fin_estatico = {}
 
 # Variables de margenes
 margen_bool = True
@@ -37,7 +39,7 @@ margenes_inferiores = {}
 
 # Variables para el control de la barra de desplazamiento vertical
 pag_actual = {} # La página en la que nos encontramos en cada pestaña
-num_pags = {}
+num_pags = {} #
 
 # Múltiples eventos
 indice_actual = 0 # Pestaña en la que se encuentra el usuario
@@ -101,7 +103,7 @@ ui_val.visor_pdf.setRenderHints(PySide6.QtGui.QPainter.Antialiasing | PySide6.Qt
 # FUNCIONES DE MANEJO DE ARCHIVOS
 # Carga un archivo PDF en una nueva pestaña
 def cargar_pdf(archivo_dir):
-    global doc_actual, docs_dicc, archivo_iter, pags_inicio, pags_fin, margenes_superiores, margenes_inferiores, margen_bool # Declara variables globales que se modificarán
+    global doc_actual, docs_dicc, archivo_iter, pags_inicio_export, pags_fin_export, margenes_superiores, margenes_inferiores, margen_bool # Declara variables globales que se modificarán
 
     try:
         nuevo_doc = fitz.open(archivo_dir) # Abre el archivo PDF con PyMuPDF en memoria
@@ -117,8 +119,11 @@ def cargar_pdf(archivo_dir):
 
             # Asignar valores por defecto a la nueva clave en los diccionarios
             # Agregar rango de páginas del documento al diccionario
-            pags_inicio[indice_carg] = 1
-            pags_fin[indice_carg] = len(doc_actual) # Asignar el número total de páginas del documento
+            pags_inicio_export[indice_carg] = 1 # Primera página
+            pags_fin_export[indice_carg] = len(doc_actual) # Asignar el número total de páginas del documento
+
+            pags_inicio_estatico[indice_carg] = 1
+            pags_fin_estatico[indice_carg] = len(doc_actual)
 
             # Establecer valores para márgenes
             if margen_bool and len(docs_dicc) > 1: # Usar los valores de la pestaña anterior
@@ -243,14 +248,16 @@ def cambiar_pestana(indice_tab):
 
 # Cierra una pestaña abierta y gestiona los recursos asociados
 def cerrar_pestana(indice_val):
-    global archivo_iter, doc_actual, docs_dicc, pags_inicio, pags_fin, margenes_superiores, margenes_inferiores, pag_actual, num_pags # Declara variables globales que se modificarán
+    global archivo_iter, doc_actual, docs_dicc, pags_inicio_export, pags_fin_export, margenes_superiores, margenes_inferiores, pag_actual, num_pags # Declara variables globales que se modificarán
 
     docs_dicc[indice_val].close() # Cierra el documento
 
     # Eliminar datos asociados al documento en todos los diccionarios
     del docs_dicc[indice_val] # Elimina el documento del diccionario de documentos
-    del pags_inicio [indice_val] #
-    del pags_fin [indice_val] #
+    del pags_inicio_export [indice_val] #
+    del pags_fin_export [indice_val] #
+    del pags_inicio_estatico [indice_val] #
+    del pags_fin_estatico [indice_val] #
     del margenes_superiores [indice_val] #
     del margenes_inferiores [indice_val] #
     del pag_actual [indice_val] #
@@ -258,8 +265,10 @@ def cerrar_pestana(indice_val):
 
     # Restar una posición a las claves de los diccionarios a partir del índice más uno
     docs_dicc = {i: v for i, (_, v) in enumerate(sorted(docs_dicc.items()))}
-    pags_inicio = {i: v for i, (_, v) in enumerate(sorted(pags_inicio.items()))}
-    pags_fin = {i: v for i, (_, v) in enumerate(sorted(pags_fin.items()))}
+    pags_inicio_export = {i: v for i, (_, v) in enumerate(sorted(pags_inicio_export.items()))}
+    pags_fin_export = {i: v for i, (_, v) in enumerate(sorted(pags_fin_export.items()))}
+    pags_inicio_estatico = {i: v for i, (_, v) in enumerate(sorted(pags_inicio_export.items()))}
+    pags_fin_estatico = {i: v for i, (_, v) in enumerate(sorted(pags_fin_export.items()))}
     margenes_superiores = {i: v for i, (_, v) in enumerate(sorted(margenes_superiores.items()))}
     margenes_inferiores = {i: v for i, (_, v) in enumerate(sorted(margenes_inferiores.items()))}
     pag_actual = {i: v for i, (_, v) in enumerate(sorted(pag_actual.items()))}
@@ -567,7 +576,7 @@ def exportar_txt():
                 cord_y2 = margenes_inferiores[0] / altura_pagina
 
                 # Iterar sobre el rango de páginas del archivo
-                for pag_num in range(pags_inicio[iter_doc] - 1, pags_fin[iter_doc]):
+                for pag_num in range(pags_inicio_export[iter_doc] - 1, pags_fin_export[iter_doc]):
                     pag_val = docs_dicc[iter_doc].load_page(pag_num) #
                     pag_rect = pag_val.rect #
 
@@ -598,7 +607,7 @@ def exportar_txt():
                 #area_texto = "" #
 
                 # Iterar sobre el rango de páginas del archivo
-                #for pags_inicio[iter_doc] in pags_fin[iter_doc]:
+                #for pags_inicio_export[iter_doc] in pags_fin_export[iter_doc]:
                     # Extraer texto del área (acumular progreseivamente página por página en variable)
                     #texto_pag = page.get_text("text", clip = area_texto) #
                     #texto_docs[iter_doc] += texto_pag
@@ -637,22 +646,28 @@ def aplicar_margen_pestanas():
 # VENTANAS
 # Ventana de rango de páginas
 def ventana_rango_paginas():
-    global pags_inicio, pags_fin, doc_actual, indice_actual
+    global pags_inicio_export, pags_fin_export, doc_actual, indice_actual
 
     if doc_actual:
         ventana = rango_paginas.rango_paginas_ui() # Crear la ventana (no visible aún)
         ventana.ventana_ui() # Configurar la interfaz (añadir widgets, estilos, etc.)
 
         # Asignar límites de rango seleccionables
-        ventana.input_inicio.setRange(1, pags_inicio[indice_actual]) #
-        ventana.input_fin.setRange(1, pags_fin[indice_actual]) #
+        ventana.input_inicio.setRange(1, pags_fin_estatico[indice_actual]) #
+        ventana.input_fin.setRange(1, pags_fin_estatico[indice_actual]) #
 
-        # Asignar rangos límite de páginas para el documento según el diccionario
-        ventana.input_inicio.setValue(pags_inicio[indice_actual]) #
-        ventana.input_fin.setValue(pags_fin[indice_actual]) #
+        # Asignar extremos de páginas para el documento según el diccionario
+        ventana.input_inicio.setValue(pags_inicio_export[indice_actual]) #
+        ventana.input_fin.setValue(pags_fin_export[indice_actual]) #
+
+        # Captura de variables temporales (anteriores a las del usuario)
+        ventana.inicio_tmp = pags_inicio_export[indice_actual]
+        ventana.fin_tmp = pags_fin_export[indice_actual]
+
+        print(ventana.inicio_tmp, ventana.fin_tmp)
 
         if ventana.exec() == PySide6.QtWidgets.QDialog.Accepted: # Si el usuario hizo clic en "OK"
-            pags_inicio[indice_actual], pags_fin[indice_actual] = ventana.obtener_rango() # Asigna los valores a las variables globales
+            pags_inicio_export[indice_actual], pags_fin_export[indice_actual] = ventana.obtener_rango() # Asigna los valores a las variables globales
 
 # Ventana "Acerca de"
 def ventana_acerca_de():
