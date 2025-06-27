@@ -247,7 +247,7 @@ class Ui_Widget(object):
         self.area_2.setStyleSheet(u"background-color: rgba(0, 0, 0, 40%); border: none;") # Negro con transparencia
         self.area_2.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Expanding, PySide6.QtWidgets.QSizePolicy.Fixed) # Expandido horizontalmente, altura fija
 
-        # Accesos directos
+        # Accesos directos con teclado
         self.shortcut_abrir = PySide6.QtGui.QShortcut(PySide6.QtGui.QKeySequence("Ctrl+O"), Widget)
         self.shortcut_abrir.activated.connect(self.accion_abrir.trigger)
 

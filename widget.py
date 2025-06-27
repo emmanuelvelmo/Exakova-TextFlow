@@ -45,10 +45,11 @@ num_pags = {} #
 indice_actual = 0 # Pestaña en la que se encuentra el usuario
 
 # Variables para manejo de archivos
-archivo_iter = None # Archivo PDF actualmente abierto
+directorio_archivo = None # Archivo PDF actualmente abierto
 doc_actual = None # Documento PDF actual
 docs_dicc = {} # Diccionario que almacena todos los documentos abiertos por índice de tab
 paginas_contenedor = [] # Lista de elementos gráficos de páginas PDF
+rutas_docs = {}
 
 # CONFIGURACIÓN DE LA INTERFAZ DE USUARIO
 # Ocultar controles para el documento
@@ -74,6 +75,20 @@ def mostrar_controles():
 
     ui_val.area_1.setGeometry(0, 0, ui_val.visor_pdf.width(), ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height())
     ui_val.area_2.setGeometry(0, ui_val.etiqueta_2.y(), ui_val.visor_pdf.width(), ui_val.visor_pdf.height() - ui_val.etiqueta_2.y())
+
+# Recargar documento
+def recargar_documento():
+    global rutas_docs, indice_actual, doc_actual, directorio_archivo
+
+    if doc_actual:
+        doc_tmp = fitz.open(rutas_docs[indice_actual]) # Cargar el mismo archivo de la pestaña
+
+        doc_actual = doc_tmp # Actualiza el documento actual
+        directorio_archivo = rutas_docs[indice_actual] # Actualiza el archivo actual
+
+        limpiar_vista_pdf() # Limpiar visor PDF
+
+        ventana_paginas_pdf(indice_actual) # Mostrar documento
 
 # Calcular dimensiones de elementos
 def renderizar_etiquetas_areas():
@@ -102,20 +117,20 @@ ui_val.visor_pdf.setRenderHints(PySide6.QtGui.QPainter.Antialiasing | PySide6.Qt
 
 # FUNCIONES DE MANEJO DE ARCHIVOS
 # Carga un archivo PDF en una nueva pestaña
-def cargar_pdf(archivo_dir):
-    global doc_actual, docs_dicc, archivo_iter, pags_inicio_export, pags_fin_export, margenes_superiores, margenes_inferiores, margen_bool # Declara variables globales que se modificarán
+def cargar_pdf(archivo_dir_tmp):
+    global doc_actual, docs_dicc, directorio_archivo, pags_inicio_export, pags_fin_export, margenes_superiores, margenes_inferiores, margen_bool # Declara variables globales que se modificarán
 
     try:
-        nuevo_doc = fitz.open(archivo_dir) # Abre el archivo PDF con PyMuPDF en memoria
+        doc_tmp = fitz.open(archivo_dir_tmp) # Abre el archivo PDF con PyMuPDF en memoria
 
         # El archivo no se encuentra previamente cargado
-        if os.path.basename(archivo_dir) not in [os.path.basename(doc_iter.name) for doc_iter in docs_dicc.values()]:
-            indice_carg = ui_val.barra_pestanas.addTab(os.path.basename(archivo_dir)) # Añade nueva pestaña con nombre del archivo
+        if os.path.basename(archivo_dir_tmp) not in [os.path.basename(doc_iter.name) for doc_iter in docs_dicc.values()]:
+            indice_carg = ui_val.barra_pestanas.addTab(os.path.basename(archivo_dir_tmp)) # Añade nueva pestaña con nombre del archivo
 
-            docs_dicc[indice_carg] = nuevo_doc # Almacena el documento en el diccionario
+            docs_dicc[indice_carg] = doc_tmp # Almacena el documento en el diccionario
 
-            doc_actual = nuevo_doc # Actualiza el documento actual ######################################
-            archivo_iter = archivo_dir # Actualiza el archivo actual ####################################
+            doc_actual = doc_tmp # Actualiza el documento actual
+            directorio_archivo = archivo_dir_tmp # Actualiza el archivo actual
 
             # Asignar valores por defecto a la nueva clave en los diccionarios
             # Agregar rango de páginas del documento al diccionario
@@ -135,6 +150,9 @@ def cargar_pdf(archivo_dir):
 
             # Última página vista en el documento
             pag_actual[indice_carg] = 0 #
+
+            # Guardar ruta en el diccionario
+            rutas_docs[indice_carg] = archivo_dir_tmp
 
             #
             if len(docs_dicc) == 1:
@@ -171,25 +189,8 @@ def evento_redimensionamiento(evento):
     margenes_inferiores[indice_actual] = ui_val.etiqueta_2.y()
 
     if doc_actual and paginas_contenedor:
-        # Ajustar todas las páginas al nuevo tamaño
-        viewport_height = ui_val.visor_pdf.viewport().height()
-        viewport_width = ui_val.visor_pdf.viewport().width()
-
-        first_page = paginas_contenedor[0]
-        first_pag_pixmap = first_page.pixmap()
-        pag_ratio = first_pag_pixmap.width() / first_pag_pixmap.height()
-
-        # Calcular nuevo tamaño manteniendo relación de aspecto
-        new_height = viewport_height
-        new_width = new_height * pag_ratio
-
-        # Si es más ancho que el viewport, ajustar al ancho
-        if new_width > viewport_width:
-            new_width = viewport_width
-            new_height = new_width / pag_ratio
-
-        # Ajustar la vista
-        ui_val.visor_pdf.fitInView(first_page, PySide6.QtCore.Qt.KeepAspectRatio)
+        # Recargar documento
+        recargar_documento()
 
     # Ajustar barra scroll si está habilitada
     if ui_val.barra_desp_vert.isVisible():
@@ -230,11 +231,11 @@ def limpiar_vista_pdf():
 
 # Maneja el cambio de pestaña en la interfaz
 def cambiar_pestana(indice_tab):
-    global doc_actual, archivo_iter, indice_actual, docs_dicc, margenes_superiores, margenes_inferiores # Declara variables globales que se modificarán
+    global doc_actual, directorio_archivo, indice_actual, docs_dicc, margenes_superiores, margenes_inferiores # Declara variables globales que se modificarán
 
     if indice_tab in docs_dicc: # Verifica que el índice sea válido y exista en docs_dicc
         doc_actual = docs_dicc[indice_tab] # Cambia al documento del tab seleccionado
-        archivo_iter = doc_actual.name # Actualiza el archivo actual
+        directorio_archivo = doc_actual.name # Actualiza el archivo actual
 
         ventana_paginas_pdf(indice_tab) # Muestra las páginas del nuevo documento
 
@@ -248,20 +249,21 @@ def cambiar_pestana(indice_tab):
 
 # Cierra una pestaña abierta y gestiona los recursos asociados
 def cerrar_pestana(indice_val):
-    global archivo_iter, doc_actual, docs_dicc, pags_inicio_export, pags_fin_export, margenes_superiores, margenes_inferiores, pag_actual, num_pags # Declara variables globales que se modificarán
+    global directorio_archivo, doc_actual, docs_dicc, pags_inicio_export, pags_fin_export, pags_inicio_estatico, pags_fin_estatico, margenes_superiores, margenes_inferiores, pag_actual, num_pags, rutas_docs # Declara variables globales que se modificarán
 
     docs_dicc[indice_val].close() # Cierra el documento
 
     # Eliminar datos asociados al documento en todos los diccionarios
     del docs_dicc[indice_val] # Elimina el documento del diccionario de documentos
-    del pags_inicio_export [indice_val] #
-    del pags_fin_export [indice_val] #
-    del pags_inicio_estatico [indice_val] #
-    del pags_fin_estatico [indice_val] #
-    del margenes_superiores [indice_val] #
-    del margenes_inferiores [indice_val] #
-    del pag_actual [indice_val] #
-    del num_pags [indice_val] #
+    del pags_inicio_export[indice_val] #
+    del pags_fin_export[indice_val] #
+    del pags_inicio_estatico[indice_val] #
+    del pags_fin_estatico[indice_val] #
+    del margenes_superiores[indice_val] #
+    del margenes_inferiores[indice_val] #
+    del pag_actual[indice_val] #
+    del num_pags[indice_val] #
+    del rutas_docs[indice_val] #
 
     # Restar una posición a las claves de los diccionarios a partir del índice más uno
     docs_dicc = {i: v for i, (_, v) in enumerate(sorted(docs_dicc.items()))}
@@ -273,6 +275,7 @@ def cerrar_pestana(indice_val):
     margenes_inferiores = {i: v for i, (_, v) in enumerate(sorted(margenes_inferiores.items()))}
     pag_actual = {i: v for i, (_, v) in enumerate(sorted(pag_actual.items()))}
     num_pags = {i: v for i, (_, v) in enumerate(sorted(num_pags.items()))}
+    rutas_docs = {i: v for i, (_, v) in enumerate(sorted(rutas_docs.items()))}
 
     ui_val.barra_pestanas.removeTab(indice_val) # Remueve el tab de la barra
 
@@ -282,7 +285,7 @@ def cerrar_pestana(indice_val):
         # Ocultar controles
         ocultar_controles()
 
-        archivo_iter = None # Reinicia el archivo actual
+        directorio_archivo = None # Reinicia el archivo actual
         doc_actual = None # Reinicia el documento actual
 
 # Renderiza y muestra las páginas del PDF en la vista
@@ -301,6 +304,7 @@ def ventana_paginas_pdf(indice_val):
         viewport_height = ui_val.visor_pdf.viewport().height()
         viewport_width = ui_val.visor_pdf.viewport().width()
 
+        #
         for pag_num in range(num_pags[indice_val]): # Usar el valor del diccionario
             page = doc_actual.load_page(pag_num)
             pag_rect = page.rect
@@ -548,12 +552,12 @@ def configurar_barra_desp(indice_val):
 # FUNCIONES DE ACCIONES
 # Abre uno o varios archivos PDF mediante un cuadro de diálogo
 def abrir_pdf():
-    archivos_ruta, filtro_val = PySide6.QtWidgets.QFileDialog.getOpenFileNames(vent_princ, "Open PDF(s)", "", "PDF Files (*.pdf)") # Abre diálogo para seleccionar archivos PDF
+    archivos_rutas, filtro_val = PySide6.QtWidgets.QFileDialog.getOpenFileNames(vent_princ, "Open PDF(s)", "", "PDF Files (*.pdf)") # Abre diálogo para seleccionar archivos PDF
 
-    if archivos_ruta: # Si se seleccionaron archivos
+    if archivos_rutas: # Si se seleccionaron archivos
         # Itera sobre cada archivo seleccionado
-        for archivo_dir in archivos_ruta: # Itera sobre cada ruta seleccionada
-            cargar_pdf(archivo_dir) # Carga cada archivo PDF
+        for archivo_dir_tmp in archivos_rutas: # Itera sobre cada ruta seleccionada
+            cargar_pdf(archivo_dir_tmp) # Carga cada archivo PDF
 
 # Exportar texto en PDF a TXT
 def exportar_txt():
@@ -561,31 +565,31 @@ def exportar_txt():
 
     if docs_dicc:
         # Variables
-        texto_docs = {} #
+        texto_docs = {iter_doc: "" for iter_doc in docs_dicc} # Inicializar diccionario para almacenar texto de cada documento
         texto_pag = "" #
 
         # Aplica el mismo margen para todos los archivos
-        if margen_bool:
+        if margen_bool and paginas_contenedor:
+            # Obtener altura de la primera página en píxeles
+            altura_pagina = paginas_contenedor[0].pixmap().height()
+
+            # Convertir la altura de los márgenes a fracción del total de la página
+            cord_y1 = margenes_superiores[0] / altura_pagina
+            cord_y2 = margenes_inferiores[0] / altura_pagina
+
             # Iterar sobre cada archivo
             for iter_doc in docs_dicc:
-                # Obtener altura de la primera página en píxeles
-                altura_pagina = paginas_contenedor[0].pixmap().height()
-
-                # Convertir la altura de los márgenes a fracción del total de la página (el mismo para todos los documentos)
-                cord_y1 = margenes_superiores[0] / altura_pagina
-                cord_y2 = margenes_inferiores[0] / altura_pagina
-
                 # Iterar sobre el rango de páginas del archivo
                 for pag_num in range(pags_inicio_export[iter_doc] - 1, pags_fin_export[iter_doc]):
-                    pag_val = docs_dicc[iter_doc].load_page(pag_num) #
-                    pag_rect = pag_val.rect #
+                    pag_val = docs_dicc[iter_doc].load_page(pag_num)
+                    pag_rect = pag_val.rect
 
-                    # Definir área de recorte (mitad central horizontal, márgenes verticales personalizados)
-                    clip_rect = fitz.Rect(pag_rect.width, pag_rect.height * cord_y1, pag_rect.width, pag_rect.height * cord_y2)
+                    # Definir área de recorte
+                    clip_rect = fitz.Rect(0, pag_rect.height * cord_y1, pag_rect.width, pag_rect.height * cord_y2)
 
                     # Extraer texto del área definida
-                    texto_pag = pag_val.get_text("text", clip = clip_rect) #
-                    #texto_docs[iter_doc] += texto_pag + "\n" #
+                    texto_pag = pag_val.get_text("text", clip=clip_rect)
+                    texto_docs[iter_doc] += texto_pag + "\n"
 
 
 
@@ -617,7 +621,6 @@ def exportar_txt():
 
         # Guardar archivos txt conservando el nombre de los archivos de referencia
         if dir_val:
-            # Iterar cada archivo del diccionario
             for indice_val, doc_actual in docs_dicc.items():
                 ruta_txt = os.path.join(dir_val, f"{os.path.splitext(os.path.basename(doc_actual.name))[0]}.txt")
 
@@ -689,6 +692,13 @@ ui_val.barra_pestanas.currentChanged.connect(cambiar_pestana) # Conecta la seña
 # Conectar evento de redimensionamiento
 original_resize_event = vent_princ.resizeEvent # Guarda el evento original de redimensionamiento
 vent_princ.resizeEvent = lambda event: (original_resize_event(event), evento_redimensionamiento(event)) # Combina evento original con handler personalizado
+
+# Accesos directos con teclado
+shortcut_recargar_ctrl_r = PySide6.QtGui.QShortcut(PySide6.QtGui.QKeySequence("Ctrl+R"), vent_princ)
+shortcut_recargar_ctrl_r.activated.connect(recargar_documento)
+
+shortcut_recargar_f5 = PySide6.QtGui.QShortcut(PySide6.QtGui.QKeySequence("F5"), vent_princ)
+shortcut_recargar_f5.activated.connect(recargar_documento)
 
 # CONFIGURACIONES DE LA GUI
 # Configurar los labels arrastrables
