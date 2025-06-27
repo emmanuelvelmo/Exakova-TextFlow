@@ -563,60 +563,69 @@ def abrir_pdf():
 
 # Exportar texto en PDF a TXT
 def exportar_txt():
-    global margen_bool, docs_dicc, paginas_contenedor, margenes_superiores, margenes_inferiores
+    global margen_bool, texto_docs, docs_dicc, paginas_contenedor, margenes_superiores, margenes_inferiores
 
+    # Variables
+    texto_docs = {iter_doc: "" for iter_doc in docs_dicc} # Inicializar diccionario para almacenar texto de cada documento
+
+    #
     if docs_dicc:
-        # Variables
-        texto_docs = {iter_doc: "" for iter_doc in docs_dicc} # Inicializar diccionario para almacenar texto de cada documento
-        texto_pag = "" #
+        # Obtener altura de la primera página en píxeles (acorde a la altura del visor PDF)
+        altura_pagina = paginas_contenedor[0].pixmap().height()
 
-        # Aplica el mismo margen para todos los archivos
-        if margen_bool and paginas_contenedor:
-            # Obtener altura de la primera página en píxeles
-            altura_pagina = paginas_contenedor[0].pixmap().height()
-
+        # Mismos márgenes para todas las pestañas
+        if margen_bool:
             # Convertir la altura de los márgenes a fracción del total de la página
             cord_y1 = margenes_superiores[0] / altura_pagina
             cord_y2 = margenes_inferiores[0] / altura_pagina
 
-            # Iterar sobre cada archivo
-            for iter_doc in docs_dicc:
-                # Iterar sobre el rango de páginas del archivo
-                for pag_num in range(pags_inicio_export[iter_doc] - 1, pags_fin_export[iter_doc]):
-                    pag_val = docs_dicc[iter_doc].load_page(pag_num)
-                    pag_rect = pag_val.rect
+        # Iterar sobre cada archivo
+        for iter_doc in docs_dicc:
+            # Distintos márgenes para cada pestaña
+            if not margen_bool:
+                # Convertir la altura de los márgenes a fracción del total de la página
+                cord_y1 = margenes_superiores[iter_doc] / altura_pagina
+                cord_y2 = margenes_inferiores[iter_doc] / altura_pagina
 
-                    # Definir área de recorte
-                    clip_rect = fitz.Rect(0, pag_rect.height * cord_y1, pag_rect.width, pag_rect.height * cord_y2)
+            # Iterar sobre el rango de páginas del archivo
+            for pag_num in range(pags_inicio_export[iter_doc] - 1, pags_fin_export[iter_doc]):
+                pag_val = docs_dicc[iter_doc].load_page(pag_num)
+                pag_rect = pag_val.rect
 
-                    # Extraer texto del área definida
-                    texto_pag = pag_val.get_text("text", clip=clip_rect)
-                    texto_docs[iter_doc] += texto_pag + "\n"
+                # Definir área de recorte
+                clip_rect = fitz.Rect(0, pag_rect.height * cord_y1, pag_rect.width, pag_rect.height * cord_y2)
 
+                # Extraer texto del área definida
+                blocks = pag_val.get_text("blocks", clip = clip_rect)
 
+                for block in blocks:
+                    # El índice 4 contiene el texto del bloque
+                    block_text = block[4]
 
+                    # Procesar cada línea del bloque
+                    lines = block_text.split('\n')
+                    processed_lines = []
 
+                    for i, line in enumerate(lines):
+                        line = line.strip()
 
+                        if line: # Solo procesar líneas con contenido
+                            # Manejar guiones al final de línea
+                            if line.endswith('-') and i < len(lines) - 1 and lines[i + 1]:
+                                line = line[: - 1] + lines[i + 1].lstrip()
+                                lines[i + 1] = '' # Marcar la siguiente línea como ya procesada
 
-        # Aplicar márgenes distintos a cada archivos
-        else:
-            # Iterar sobre cada archivo
-            for iter_doc in docs_dicc:
-                # Obtener altura de la primera página
-                altura_pagina = paginas_contenedor[0].pixmap().height()
+                            processed_lines.append(line)
 
-                # Convertir la altura de los márgenes a fracción del total de la página (distinto para cada documento)
-                #margenes_superiores[] = round(cord_y_etiqueta_1 / altura_pagina) # CORREGIR
-                #margenes_inferiores[] = round(cord_y_etiqueta_2 / altura_pagina) # CORREGIR
+                    # Unir líneas procesadas con espacios
+                    paragraph = ' '.join([line for line in processed_lines if line])
 
-                # Generar área de texto elegible en la página
-                #area_texto = "" #
+                    # Agregar doble salto de línea entre párrafos
+                    if paragraph:
+                        texto_docs[iter_doc] += paragraph + '\n\n' #
 
-                # Iterar sobre el rango de páginas del archivo
-                #for pags_inicio_export[iter_doc] in pags_fin_export[iter_doc]:
-                    # Extraer texto del área (acumular progreseivamente página por página en variable)
-                    #texto_pag = page.get_text("text", clip = area_texto) #
-                    #texto_docs[iter_doc] += texto_pag
+            if len(texto_docs[iter_doc].splitlines()) > 1:
+                texto_docs[iter_doc] = '\n'.join(texto_docs[iter_doc].splitlines()[: - 1]) # Elimina las últimas dos líneas en blanco
 
         # Preguntar directorio dónde guardar archivo(s)
         dir_val = PySide6.QtWidgets.QFileDialog.getExistingDirectory(vent_princ, "Export File(s)")
