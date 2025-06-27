@@ -248,10 +248,10 @@ class Ui_Widget(object):
         self.area_2.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Expanding, PySide6.QtWidgets.QSizePolicy.Fixed) # Expandido horizontalmente, altura fija
 
         # Accesos directos con teclado
-        self.shortcut_abrir = PySide6.QtGui.QShortcut(PySide6.QtGui.QKeySequence("Ctrl+O"), Widget)
+        self.shortcut_abrir = PySide6.QtGui.QShortcut(PySide6.QtGui.QKeySequence("Ctrl + O"), Widget)
         self.shortcut_abrir.activated.connect(self.accion_abrir.trigger)
 
-        self.shortcut_exportar = PySide6.QtGui.QShortcut(PySide6.QtGui.QKeySequence("Ctrl+S"), Widget)
+        self.shortcut_exportar = PySide6.QtGui.QShortcut(PySide6.QtGui.QKeySequence("Ctrl + S"), Widget)
         self.shortcut_exportar.activated.connect(self.accion_exportar.trigger)
 
         # Crear un widget contenedor para el layout horizontal
