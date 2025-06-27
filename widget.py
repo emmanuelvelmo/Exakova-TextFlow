@@ -237,6 +237,8 @@ def cambiar_pestana(indice_tab):
         doc_actual = docs_dicc[indice_tab] # Cambia al documento del tab seleccionado
         directorio_archivo = doc_actual.name # Actualiza el archivo actual
 
+        limpiar_vista_pdf() # Limpiar visor PDF
+
         ventana_paginas_pdf(indice_tab) # Muestra las páginas del nuevo documento
 
         # Cambiar de posición las etiquetas arrastrables y sus áreas
