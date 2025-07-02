@@ -23,8 +23,9 @@ ui_val.iniciar_ui(vent_princ) # Configura la interfaz en el widget principal
 # VARIABLES
 # Variables para redimensionar
 altura_panel_izquierdo = 1
-cord_y_etiqueta_1 = {} # Extremo superior del panel izquierdo
-cord_y_etiqueta_2 = {} # Extremo inferior del panel izquierdo
+ratio_panel_izquierdo = 1
+extremo_etiqueta_1 = {} # Extremo superior del panel izquierdo (el mismo que el borde superior de la etiqueta)
+extremo_etiqueta_2 = {} # Extremo inferior del panel izquierdo (el mismo que el borde inferior de la etiqueta)
 
 # Variables de rango de páginas
 pags_inicio_export = {}
@@ -117,7 +118,7 @@ ui_val.visor_pdf.setRenderHints(PySide6.QtGui.QPainter.Antialiasing | PySide6.Qt
 # FUNCIONES DE MANEJO DE ARCHIVOS
 # Carga un archivo PDF en una nueva pestaña
 def cargar_pdf(archivo_dir_tmp):
-    global doc_actual, docs_dicc, directorio_archivo, pags_inicio_export, pags_fin_export, margenes_superiores, margenes_inferiores, margen_bool, cord_y_etiqueta_1, cord_y_etiqueta_2, altura_panel_izquierdo # Declara variables globales que se modificarán
+    global doc_actual, docs_dicc, directorio_archivo, pags_inicio_export, pags_fin_export, margenes_superiores, margenes_inferiores, margen_bool, extremo_etiqueta_1, extremo_etiqueta_2, altura_panel_izquierdo # Declara variables globales que se modificarán
 
     try:
         doc_tmp = fitz.open(archivo_dir_tmp) # Abre el archivo PDF con PyMuPDF en memoria
@@ -138,8 +139,8 @@ def cargar_pdf(archivo_dir_tmp):
             pags_inicio_estatico[indice_carg] = 1 #
             pags_fin_estatico[indice_carg] = len(doc_actual) #
 
-            cord_y_etiqueta_1[indice_carg] = 0 #
-            cord_y_etiqueta_2[indice_carg] = ui_val.visor_pdf.height() #
+            extremo_etiqueta_1[indice_carg] = 0 #
+            extremo_etiqueta_2[indice_carg] = ui_val.visor_pdf.height() #
 
             # Establecer valores para márgenes
             if margen_bool and len(docs_dicc) > 1: # Usar los valores de la pestaña anterior
@@ -168,31 +169,40 @@ def cargar_pdf(archivo_dir_tmp):
 # FUNCIONES DE INTERFAZ
 # Maneja el evento de redimensionamiento de la ventana
 def evento_redimensionamiento(evento):
-    global altura_panel_izquierdo, cord_y_etiqueta_1, cord_y_etiqueta_2, num_pags, indice_actual, margenes_superiores, margenes_inferiores, docs_dicc
+    global ratio_panel_izquierdo, altura_panel_izquierdo, extremo_etiqueta_1, extremo_etiqueta_2, num_pags, indice_actual, margenes_superiores, margenes_inferiores, docs_dicc
 
-    # Calcular ratio del panel izquierdo después de redimensionar
-    ratio_panel_izquierdo = ui_val.panel_izquierdo.height() / altura_panel_izquierdo
+    #
+    if doc_actual:
+        # Calcular ratio del panel izquierdo después de redimensionar
+        ratio_panel_izquierdo = ui_val.panel_izquierdo.height() / altura_panel_izquierdo
 
-    # Actualizar valores de márgenes en diccionarios
-    for iter_doc in docs_dicc:
-        # Normalización de posiciones de etiquetas según el caso
-        norm_cord_y_etiqueta_1 = round(ratio_panel_izquierdo * cord_y_etiqueta_1[iter_doc])
-        norm_cord_y_etiqueta_2 = round(ratio_panel_izquierdo * cord_y_etiqueta_2[iter_doc]) - ui_val.etiqueta_2.height()
+        # Calcular valores para márgenes en diccionarios de todas las pestañas (se actualizan oculto)
+        for iter_doc in docs_dicc:
+            # Normalización de posiciones de etiquetas según el caso
+            norm_extremo_etiqueta_1 = round(ratio_panel_izquierdo * extremo_etiqueta_1[iter_doc])
+            norm_extremo_etiqueta_2 = round(ratio_panel_izquierdo * extremo_etiqueta_2[iter_doc]) - ui_val.etiqueta_2.height()
 
+            # Posiciones hipotéticas de las etiquetas de cada pestaña (actualiza las posiciones ciclicamente)
+            pos_etiqueta_1 = margenes_superiores[iter_doc] - ui_val.etiqueta_1.height()
+            pos_etiqueta_2 = margenes_inferiores[iter_doc]
+
+            # Límites y colisiones para las etiquetas
+            et_h_1 = max(0, min(norm_extremo_etiqueta_1, pos_etiqueta_2 - ui_val.etiqueta_1.height()))
+            et_h_2 = min(ui_val.panel_izquierdo.height() - ui_val.etiqueta_2.height(), max(norm_extremo_etiqueta_2, pos_etiqueta_1 + ui_val.etiqueta_1.height()))
+
+            # Actualizar valores de margenes sugún nueva proporción
+            margenes_superiores[iter_doc] = et_h_1 + ui_val.etiqueta_1.height()
+            margenes_inferiores[iter_doc] = et_h_2
+
+        # Elementos en Visor PDF en índice actual (lo que ve el usuario)
         # Desplazar etiquetas según el ratio del panel izquierdo calculado
-        ui_val.etiqueta_1.move(0, max(0, min(norm_cord_y_etiqueta_1, ui_val.etiqueta_2.y() - ui_val.etiqueta_1.height())))
-        ui_val.etiqueta_2.move(0, min(ui_val.panel_izquierdo.height() - ui_val.etiqueta_2.height(), max(norm_cord_y_etiqueta_2, ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height())))
+        ui_val.etiqueta_1.move(0, margenes_superiores[indice_actual] - ui_val.etiqueta_1.height())
+        ui_val.etiqueta_2.move(0, margenes_inferiores[indice_actual])
 
         # Mover áreas selección a la par con las etiquetas
         ui_val.area_1.setGeometry(0, 0, ui_val.visor_pdf.width(), ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height())
         ui_val.area_2.setGeometry(0, ui_val.etiqueta_2.y(), ui_val.visor_pdf.width(), ui_val.visor_pdf.height() - ui_val.etiqueta_2.y())
 
-        # Actualizar valores de margenes sugún nueva proporción
-        margenes_superiores[iter_doc] = ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height()
-        margenes_inferiores[iter_doc] = ui_val.etiqueta_2.y()
-
-    #
-    if doc_actual:
         # Recargar documento
         recargar_documento()
 
@@ -235,7 +245,7 @@ def evento_redimensionamiento(evento):
 
 
 
-
+#########################################################################################################################
 # Limpia la vista del PDF y reinicia los elementos relacionados
 def limpiar_vista_pdf():
     global paginas_contenedor # Declara variable global que se modificará
@@ -265,7 +275,7 @@ def cambiar_pestana(indice_tab):
 
 # Cierra una pestaña abierta y gestiona los recursos asociados
 def cerrar_pestana(indice_val):
-    global directorio_archivo, doc_actual, docs_dicc, pags_inicio_export, pags_fin_export, pags_inicio_estatico, pags_fin_estatico, margenes_superiores, margenes_inferiores, pag_actual, num_pags, rutas_docs, cord_y_etiqueta_1, cord_y_etiqueta_2 # Declara variables globales que se modificarán
+    global directorio_archivo, doc_actual, docs_dicc, pags_inicio_export, pags_fin_export, pags_inicio_estatico, pags_fin_estatico, margenes_superiores, margenes_inferiores, pag_actual, num_pags, rutas_docs, extremo_etiqueta_1, extremo_etiqueta_2 # Declara variables globales que se modificarán
 
     docs_dicc[indice_val].close() # Cierra el documento
 
@@ -280,8 +290,8 @@ def cerrar_pestana(indice_val):
     del pag_actual[indice_val] #
     del num_pags[indice_val] #
     del rutas_docs[indice_val] #
-    del cord_y_etiqueta_1[indice_val] #
-    del cord_y_etiqueta_2[indice_val] #
+    del extremo_etiqueta_1[indice_val] #
+    del extremo_etiqueta_2[indice_val] #
 
     # Restar una posición a las claves de los diccionarios a partir del índice más uno
     docs_dicc = {i: v for i, (_, v) in enumerate(sorted(docs_dicc.items()))}
@@ -294,8 +304,8 @@ def cerrar_pestana(indice_val):
     pag_actual = {i: v for i, (_, v) in enumerate(sorted(pag_actual.items()))}
     num_pags = {i: v for i, (_, v) in enumerate(sorted(num_pags.items()))}
     rutas_docs = {i: v for i, (_, v) in enumerate(sorted(rutas_docs.items()))}
-    cord_y_etiqueta_1 = {i: v for i, (_, v) in enumerate(sorted(cord_y_etiqueta_1.items()))}
-    cord_y_etiqueta_2 = {i: v for i, (_, v) in enumerate(sorted(cord_y_etiqueta_2.items()))}
+    extremo_etiqueta_1 = {i: v for i, (_, v) in enumerate(sorted(extremo_etiqueta_1.items()))}
+    extremo_etiqueta_2 = {i: v for i, (_, v) in enumerate(sorted(extremo_etiqueta_2.items()))}
 
     ui_val.barra_pestanas.removeTab(indice_val) # Remueve el tab de la barra
 
@@ -314,7 +324,6 @@ def ventana_paginas_pdf(indice_val):
 
     if doc_actual:
         y_pos = 0
-        paginas_contenedor = [] # Reiniciar la lista de páginas
 
         indice_actual = indice_val # Actualizar índice de documento
 
@@ -350,11 +359,11 @@ def ventana_paginas_pdf(indice_val):
             escena.setSceneRect(PySide6.QtCore.QRectF(0, 0, paginas_contenedor[0].pixmap().width(), total_height)) #
             ui_val.visor_pdf.fitInView(paginas_contenedor[pag_actual[indice_actual]], PySide6.QtCore.Qt.KeepAspectRatio) #
 
-        ui_val.visor_pdf.wheelEvent = voluta_desp #
-
         # Verificar si hay más de una página en el diccionario
         if num_pags[indice_val] > 1:
             configurar_barra_desp(indice_val) #
+
+            ui_val.visor_pdf.wheelEvent = voluta_desp #
 
 # CONFIGURACIONES PERSONALIZADAS
 # Comportamiento de voluta del mouse
@@ -367,25 +376,38 @@ def voluta_desp(evento):
     # Determinar la dirección del scroll (positivo = abajo, negativo = arriba)
     delta = evento.angleDelta().y()
 
+    #
     if delta > 0: # Scroll hacia arriba
-        scroll_bar.setValue(scroll_bar.value() - scroll_bar.pageStep()) # Ir a la página anterior
-
         # Actualiza página actual en documento
-        pag_actual[indice_actual] = max(0, pag_actual[indice_actual] - 1)
+        pag_actual[indice_actual] = max(0, pag_actual[indice_actual] - 1) #
+
+        # Recargar la página
+        recargar_documento()
 
         # Actualizar posición de la barra scroll
 
     else: # Scroll hacia abajo
-        scroll_bar.setValue(scroll_bar.value() + scroll_bar.pageStep()) # Ir a la página siguiente
-
         # Actualiza página actual en documento
-        pag_actual[indice_actual] = min(num_pags[indice_actual] - 1, pag_actual[indice_actual] + 1)
+        pag_actual[indice_actual] = min(num_pags[indice_actual] - 1, pag_actual[indice_actual] + 1) #
+
+        # Recargar la página
+        recargar_documento()
 
         # Actualizar posición de la barra scroll
 
 
     evento.accept() #
 
+
+
+
+
+
+
+
+
+
+#########################################################################################################################
 # Comportamiento de etiquetas en panel izquierdo
 def configurar_etiquetas_arrastrables():
     datos_arrastre = { # Diccionario para estado del arrastre
@@ -397,12 +419,20 @@ def configurar_etiquetas_arrastrables():
 
      # Maneja el evento de presión del ratón sobre las etiquetas (actualizar el diccionario según la etiqueta que se presione)
     def evento_presion_raton(evento):
-        global altura_panel_izquierdo
+        global altura_panel_izquierdo, ratio_panel_izquierdo, extremo_etiqueta_1, extremo_etiqueta_2, margen_bool
 
-        if evento.button() == PySide6.QtCore.Qt.LeftButton: # Solo botón izquierdo
-            altura_panel_izquierdo = ui_val.panel_izquierdo.height() # Actualizar altura de panel izquierdo
+        if evento.button() == PySide6.QtCore.Qt.LeftButton: # Presionar botón izquierdo
+            # Actualizar altura de panel izquierdo
+            altura_panel_izquierdo = ui_val.panel_izquierdo.height()
 
-            posicion = evento.position().toPoint() # Posición del click
+            # Aplicar ratio de proporción a diccionario de extremos de etiquetas (actualizar extremos)
+            if not margen_bool:
+                for iter_doc in docs_dicc:
+                    extremo_etiqueta_1[iter_doc] = margenes_superiores[iter_doc] - ui_val.etiqueta_1.height()
+                    extremo_etiqueta_2[iter_doc] = margenes_inferiores[iter_doc] + ui_val.etiqueta_2.height()
+
+            # Posición del click
+            posicion = evento.position().toPoint()
 
             #
             for etiqueta in [ui_val.etiqueta_1, ui_val.etiqueta_2]:
@@ -418,11 +448,12 @@ def configurar_etiquetas_arrastrables():
 
     # Maneja el evento de movimiento del ratón para arrastrar etiquetas
     def evento_mover_raton(evento):
-        global cord_y_etiqueta_1, cord_y_etiqueta_2, indice_actual, margenes_superiores, margenes_inferiores
+        global extremo_etiqueta_1, extremo_etiqueta_2, indice_actual, margenes_superiores, margenes_inferiores
 
         if datos_arrastre['arrastrando'] and datos_arrastre['etiqueta_actual']:
             etiqueta = datos_arrastre['etiqueta_actual'] # Etiqueta siendo arrastrada
             posicion = evento.position().toPoint() # Posición actual del mouse
+
             tmp_y = posicion.y() - datos_arrastre['desfase_val'] # Nueva posición Y (actualización constante)
 
             if etiqueta == ui_val.etiqueta_1: # Para etiqueta superior
@@ -431,36 +462,37 @@ def configurar_etiquetas_arrastrables():
                 ui_val.area_1.setGeometry(0, 0, ui_val.area_1.width(), tmp_y + etiqueta.height()) #
 
                 # Actualizar márgenes según el caso
-                if margen_bool:
+                if margen_bool: #
                     # Iterar todos los márgenes
-                    for iter_val in margenes_superiores:
-                        margenes_superiores[iter_val] = ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height() #
+                    for iter_val in margenes_superiores: # Afecta a todos las pestañas
+                        margenes_superiores[iter_val] = tmp_y + ui_val.etiqueta_1.height() #
 
-                        cord_y_etiqueta_1[iter_val] = tmp_y # Actualizar coordenada para etiqueta
-                        cord_y_etiqueta_2[iter_val] = ui_val.etiqueta_2.y() + ui_val.etiqueta_2.height() # Actualiar posición de la etique sin mover
-                else:
-                    margenes_superiores[indice_actual] = ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height() #
+                        extremo_etiqueta_1[iter_val] = tmp_y #
+                        extremo_etiqueta_2[iter_val] = ui_val.etiqueta_2.y() + ui_val.etiqueta_2.height() #
+                else: # Afecta a la pestaña actual
+                    margenes_superiores[indice_actual] = tmp_y + ui_val.etiqueta_1.height() #
 
-                    cord_y_etiqueta_1[indice_actual] = tmp_y # Actualizar coordenada para etiqueta
-                    cord_y_etiqueta_2[indice_actual] = ui_val.etiqueta_2.y() + ui_val.etiqueta_2.height() # Actualiar posición de la etique sin mover
+                    extremo_etiqueta_1[indice_actual] = tmp_y #
+                    extremo_etiqueta_2[indice_actual] = ui_val.etiqueta_2.y() + ui_val.etiqueta_2.height() #
+
             else: # Para etiqueta inferior
                 tmp_y = max(ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height(), min(tmp_y, ui_val.panel_izquierdo.height() - etiqueta.height())) # Límites
 
                 ui_val.area_2.setGeometry(0, tmp_y, ui_val.area_2.width(), vent_princ.height() - tmp_y - ui_val.barra_menu.height() - ui_val.barra_pestanas.height()) #
 
                 # Actualizar márgenes según el caso
-                if margen_bool:
+                if margen_bool: #
                     # Iterar todos los márgenes
                     for iter_val in margenes_inferiores:
-                        margenes_inferiores[iter_val] = ui_val.etiqueta_2.y() #
+                        margenes_inferiores[iter_val] = tmp_y #
 
-                        cord_y_etiqueta_2[iter_val] = tmp_y + ui_val.etiqueta_2.height() # Actualizar coordenada para etiqueta
-                        cord_y_etiqueta_1[iter_val] = ui_val.etiqueta_1.y() # Actualiar posición de la etique sin mover
-                else:
-                    margenes_inferiores[indice_actual] = ui_val.etiqueta_2.y()
+                        extremo_etiqueta_2[iter_val] = tmp_y + ui_val.etiqueta_2.height() #
+                        extremo_etiqueta_1[iter_val] = ui_val.etiqueta_1.y() #
+                else: #
+                    margenes_inferiores[indice_actual] = tmp_y #
 
-                    cord_y_etiqueta_2[indice_actual] = tmp_y + ui_val.etiqueta_2.height() # Actualizar coordenada para etiqueta
-                    cord_y_etiqueta_1[indice_actual] = ui_val.etiqueta_1.y() # Actualiar posición de la etique sin mover
+                    extremo_etiqueta_2[indice_actual] = tmp_y + ui_val.etiqueta_2.height() #
+                    extremo_etiqueta_1[indice_actual] = ui_val.etiqueta_1.y() #
 
             etiqueta.move(0, tmp_y) # Mover etiqueta a nueva posición
 
@@ -518,7 +550,7 @@ def configurar_barra_desp(indice_val):
 
 
 
-
+#########################################################################################################################
     # Mostrar la barra scroll
     ui_val.barra_desp_vert.setVisible(True)
 
@@ -612,16 +644,16 @@ def exportar_txt():
         # Mismos márgenes para todas las pestañas
         if margen_bool:
             # Convertir la altura de los márgenes a fracción del total de la página
-            cord_y1 = margenes_superiores[0] / altura_pagina
-            cord_y2 = margenes_inferiores[0] / altura_pagina
+            extremo_y1 = margenes_superiores[0] / altura_pagina
+            extremo_y2 = margenes_inferiores[0] / altura_pagina
 
         # Iterar sobre cada archivo
         for iter_doc in docs_dicc:
             # Distintos márgenes para cada pestaña
             if not margen_bool:
                 # Convertir la altura de los márgenes a fracción del total de la página
-                cord_y1 = margenes_superiores[iter_doc] / altura_pagina
-                cord_y2 = margenes_inferiores[iter_doc] / altura_pagina
+                extremo_y1 = margenes_superiores[iter_doc] / altura_pagina
+                extremo_y2 = margenes_inferiores[iter_doc] / altura_pagina
 
             # Iterar sobre el rango de páginas del archivo
             for pag_num in range(pags_inicio_export[iter_doc] - 1, pags_fin_export[iter_doc]):
@@ -629,7 +661,7 @@ def exportar_txt():
                 pag_rect = pag_val.rect
 
                 # Definir área de recorte
-                clip_rect = fitz.Rect(0, pag_rect.height * cord_y1, pag_rect.width, pag_rect.height * cord_y2)
+                clip_rect = fitz.Rect(0, pag_rect.height * extremo_y1, pag_rect.width, pag_rect.height * extremo_y2)
 
                 # Extraer texto del área definida
                 blocks = pag_val.get_text("blocks", clip = clip_rect)
@@ -679,19 +711,25 @@ def exportar_txt():
 
 # Aplicar márgen a todas las pestañas
 def aplicar_margen_pestanas():
-    global margen_bool, indice_actual
+    global margen_bool, indice_actual, margenes_superiores, margenes_inferiores, extremo_etiqueta_1, extremo_etiqueta_2, docs_dicc
 
     margen_bool = not margen_bool # Invertir el valor del bool
 
-    # Establecer los mismos márgenes para los diccionarios de márgenes
+    # Establecer los mismos márgenes y coordenadas para los diccionarios
     if margen_bool and len(docs_dicc) > 0:
         margen_superior_tmp = margenes_superiores[indice_actual]
         margen_inferior_tmp = margenes_inferiores[indice_actual]
 
-        # Iterar todos los márgenes
-        for iter_val in margenes_superiores:
-            margenes_superiores[iter_val] = margen_superior_tmp
-            margenes_inferiores[iter_val] = margen_inferior_tmp
+        extremo_etiqueta_1_tmp = extremo_etiqueta_1[indice_actual]
+        extremo_etiqueta_2_tmp = extremo_etiqueta_2[indice_actual]
+
+        # Iterar todos los márgenes y coordenadas
+        for iter_doc in docs_dicc:
+            margenes_superiores[iter_doc] = margen_superior_tmp
+            margenes_inferiores[iter_doc] = margen_inferior_tmp
+
+            extremo_etiqueta_1[iter_doc] = extremo_etiqueta_1_tmp
+            extremo_etiqueta_2[iter_doc] = extremo_etiqueta_2_tmp
 
 # FUNCIONES PARA ACCESOS DIRECTOS POR TECLADO
 # Cambiar a la pestaña siguiente
