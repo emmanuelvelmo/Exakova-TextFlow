@@ -222,19 +222,35 @@ class Ui_Widget(object):
 
         self.visor_pdf.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Expanding, PySide6.QtWidgets.QSizePolicy.Expanding) # Política de tamaño
 
-        # Deshabilitar scrollbars por defecto
+        # Deshabilitar scrollbar por defecto
         self.visor_pdf.setVerticalScrollBarPolicy(PySide6.QtCore.Qt.ScrollBarAlwaysOff)
         self.visor_pdf.setHorizontalScrollBarPolicy(PySide6.QtCore.Qt.ScrollBarAlwaysOff)
 
         self.layout_horizontal.addWidget(self.visor_pdf) # Añadir visor PDF a layout_horizontal
 
-        # Scrollbar personalizado
-        self.barra_desp_vert = PySide6.QtWidgets.QScrollBar(PySide6.QtCore.Qt.Vertical)
+        # Panel derecho (barra lateral)
+        self.panel_derecho = PySide6.QtWidgets.QWidget() # Widget para el panel
+        self.panel_derecho.setMinimumSize(PySide6.QtCore.QSize(16, 16)) # Ancho mínimo
+        self.panel_derecho.setMaximumSize(PySide6.QtCore.QSize(16, 16777215)) # Ancho máximo
+        self.panel_derecho.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Fixed, PySide6.QtWidgets.QSizePolicy.Expanding) # Política de tamaño
+        self.panel_derecho.setStyleSheet(u"background-color: #292a2b;") # Color de fondo
 
-        self.barra_desp_vert.mousePressEvent = lambda event: None # Deshabilitar el arrastre con click izquierdo
-        self.barra_desp_vert.setVisible(False) # Ocultar la barra de desplazamiento
+        # Etiqueta para panel derecho
+        self.etiqueta_scroll = PySide6.QtWidgets.QLabel(self.panel_derecho) # Etiqueta que simula handler de una barra de desplazamiento
+        self.etiqueta_scroll.setGeometry(PySide6.QtCore.QRect(0, 0, 16, 4)) # Posición y tamaño (arriba)
+        self.etiqueta_scroll.setStyleSheet("""
+            QLabel
+            {
+                background-color: #404244;
+            }
 
-        self.layout_horizontal.addWidget(self.barra_desp_vert) # Añadir scroll bar a layout_horizontal
+            QLabel:hover
+            {
+                background-color: #505254;
+            }
+        """) # Estilo
+
+        self.layout_horizontal.addWidget(self.panel_derecho) # Añadir panel derecho al layout
 
         # Áreas de selección de texto
         self.area_1 = PySide6.QtWidgets.QLabel(self.visor_pdf) # Primer área de selección

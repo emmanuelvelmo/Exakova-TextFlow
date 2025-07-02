@@ -22,21 +22,22 @@ ui_val.iniciar_ui(vent_princ) # Configura la interfaz en el widget principal
 
 # VARIABLES
 # Variables para redimensionar
-altura_panel_izquierdo = 1
-ratio_panel_izquierdo = 1
+altura_panel_izquierdo = 1 #
 extremo_etiqueta_1 = {} # Extremo superior del panel izquierdo (el mismo que el borde superior de la etiqueta)
 extremo_etiqueta_2 = {} # Extremo inferior del panel izquierdo (el mismo que el borde inferior de la etiqueta)
 
 # Variables de rango de páginas
-pags_inicio_export = {}
-pags_fin_export = {}
-pags_inicio_estatico = {}
-pags_fin_estatico = {}
+pags_inicio_export = {} #
+pags_fin_export = {} #
+pags_inicio_estatico = {} #
+pags_fin_estatico = {} #
+frac_pag = 0
+altura_etiqueta_scroll = 4
 
 # Variables de margenes
-margen_bool = True
-margenes_superiores = {}
-margenes_inferiores = {}
+margen_bool = True #
+margenes_superiores = {} #
+margenes_inferiores = {} #
 
 # Variables para el control de la barra de desplazamiento vertical
 pag_actual = {} # La página en la que nos encontramos en cada pestaña
@@ -50,12 +51,13 @@ directorio_archivo = None # Archivo PDF actualmente abierto
 doc_actual = None # Documento PDF actual
 docs_dicc = {} # Diccionario que almacena todos los documentos abiertos por índice de tab
 paginas_contenedor = [] # Lista de elementos gráficos de páginas PDF
-rutas_docs = {}
+rutas_docs = {} #
 
 # CONFIGURACIÓN DE LA INTERFAZ DE USUARIO
 # Ocultar controles para el documento
 def ocultar_controles():
-    ui_val.barra_desp_vert.setVisible(False) # Ocultar la barra scroll
+    ui_val.panel_derecho.setVisible(False) # Ocultar la barra scroll
+    ui_val.etiqueta_scroll.setVisible(False) # Ocultar handler para barra scroll
     ui_val.panel_izquierdo.hide() # Ocultar panel izquierdo
     ui_val.etiqueta_1.hide() # Ocultar etiquetas arrastrables
     ui_val.etiqueta_2.hide() # Ocultar etiquetas arrastrables
@@ -76,6 +78,23 @@ def mostrar_controles():
 
     ui_val.area_1.setGeometry(0, 0, ui_val.visor_pdf.width(), ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height())
     ui_val.area_2.setGeometry(0, ui_val.etiqueta_2.y(), ui_val.visor_pdf.width(), ui_val.visor_pdf.height() - ui_val.etiqueta_2.y())
+
+def ajustar_handler():
+    global frac_pag, altura_etiqueta_scroll, indice_actual
+
+    # Ajustar barra scroll si está habilitada
+    if ui_val.panel_derecho.isVisible():
+        # Píxeles de desplazamiento para una página respecto a la altura de scrollbar
+        if ui_val.visor_pdf.height() / num_pags[indice_actual] < 1:
+            frac_pag = (ui_val.visor_pdf.height() - altura_etiqueta_scroll) / num_pags[indice_actual]
+        else:
+            frac_pag = ui_val.visor_pdf.height() / num_pags[indice_actual]
+
+        # Asignar altura en píxeles a handler según la situación
+        if frac_pag <= altura_etiqueta_scroll:
+            ui_val.etiqueta_scroll.setGeometry(PySide6.QtCore.QRect(0, 0, 16, altura_etiqueta_scroll)) # Altura mínima de 4 para handler
+        else:
+            ui_val.etiqueta_scroll.setGeometry(PySide6.QtCore.QRect(0, 0, 16, round(frac_pag))) #
 
 # Recargar documento
 def recargar_documento():
@@ -169,7 +188,7 @@ def cargar_pdf(archivo_dir_tmp):
 # FUNCIONES DE INTERFAZ
 # Maneja el evento de redimensionamiento de la ventana
 def evento_redimensionamiento(evento):
-    global ratio_panel_izquierdo, altura_panel_izquierdo, extremo_etiqueta_1, extremo_etiqueta_2, num_pags, indice_actual, margenes_superiores, margenes_inferiores, docs_dicc
+    global altura_panel_izquierdo, extremo_etiqueta_1, extremo_etiqueta_2, num_pags, indice_actual, margenes_superiores, margenes_inferiores, docs_dicc
 
     #
     if doc_actual:
@@ -206,46 +225,9 @@ def evento_redimensionamiento(evento):
         # Recargar documento
         recargar_documento()
 
-    # Ajustar barra scroll si está habilitada
-    if ui_val.barra_desp_vert.isVisible():
-        # Ajustar fracción por página
-        frac_pag = round(ui_val.visor_pdf.height() / num_pags[indice_actual])
+        # Ajustar handler si aplica
+        ajustar_handler()
 
-        # Asignar a barra en scroll la fracción de la altura de una sóla página y estilo
-        #ui_val.barra_desp_vert.setStyleSheet(f"""
-        """
-            QScrollBar:vertical
-            {{
-                width: 16px;
-            }}
-
-            QScrollBar::handle:vertical
-            {{
-                background: #404244;
-                min-height: {frac_pag}px; /* Altura dinámica */
-            }}
-
-            QScrollBar::handle:vertical:hover
-            {{
-                background: #505254;
-            }}
-
-            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
-            {{
-                background: #292a2b;
-            }}
-        """#)
-
-
-
-
-
-
-
-
-
-
-#########################################################################################################################
 # Limpia la vista del PDF y reinicia los elementos relacionados
 def limpiar_vista_pdf():
     global paginas_contenedor # Declara variable global que se modificará
@@ -255,7 +237,7 @@ def limpiar_vista_pdf():
 
 # Maneja el cambio de pestaña en la interfaz
 def cambiar_pestana(indice_tab):
-    global doc_actual, directorio_archivo, indice_actual, docs_dicc, margenes_superiores, margenes_inferiores # Declara variables globales que se modificarán
+    global doc_actual, directorio_archivo, indice_actual, docs_dicc, margenes_superiores, margenes_inferiores, frac_pag, pag_actual # Declara variables globales que se modificarán
 
     if indice_tab in docs_dicc: # Verifica que el índice sea válido y exista en docs_dicc
         doc_actual = docs_dicc[indice_tab] # Cambia al documento del tab seleccionado
@@ -272,6 +254,12 @@ def cambiar_pestana(indice_tab):
 
             ui_val.area_1.setGeometry(0, 0, ui_val.visor_pdf.width(), ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height())
             ui_val.area_2.setGeometry(0, ui_val.etiqueta_2.y(), ui_val.visor_pdf.width(), ui_val.visor_pdf.height() - ui_val.etiqueta_2.y())
+
+        # Ajustar tamaño para handler de la barra de desplazamiento
+        ajustar_handler()
+
+        # Actualizar posición del handler
+        ui_val.etiqueta_scroll.move(0, round(frac_pag * pag_actual[indice_actual] - 1))
 
 # Cierra una pestaña abierta y gestiona los recursos asociados
 def cerrar_pestana(indice_val):
@@ -363,12 +351,15 @@ def ventana_paginas_pdf(indice_val):
         if num_pags[indice_val] > 1:
             configurar_barra_desp(indice_val) #
 
-            ui_val.visor_pdf.wheelEvent = voluta_desp #
+            # Permitir el desplazamiento con la voluta sobre las áreas de visión del PDF
+            ui_val.visor_pdf.wheelEvent = voluta_desp
+            ui_val.area_1.wheelEvent = voluta_desp
+            ui_val.area_2.wheelEvent = voluta_desp
 
 # CONFIGURACIONES PERSONALIZADAS
 # Comportamiento de voluta del mouse
 def voluta_desp(evento):
-    global pag_actual, indice_actual
+    global pag_actual, indice_actual, frac_pag, num_pags
 
     # Obtener la barra de desplazamiento vertical
     scroll_bar = ui_val.visor_pdf.verticalScrollBar()
@@ -384,8 +375,8 @@ def voluta_desp(evento):
         # Recargar la página
         recargar_documento()
 
-        # Actualizar posición de la barra scroll
-
+        # Actualizar posición del handler
+        ui_val.etiqueta_scroll.move(0, round(frac_pag * pag_actual[indice_actual] - 1))
     else: # Scroll hacia abajo
         # Actualiza página actual en documento
         pag_actual[indice_actual] = min(num_pags[indice_actual] - 1, pag_actual[indice_actual] + 1) #
@@ -393,21 +384,11 @@ def voluta_desp(evento):
         # Recargar la página
         recargar_documento()
 
-        # Actualizar posición de la barra scroll
-
+        # Actualizar posición del handler
+        ui_val.etiqueta_scroll.move(0, round(frac_pag * pag_actual[indice_actual] - 1))
 
     evento.accept() #
 
-
-
-
-
-
-
-
-
-
-#########################################################################################################################
 # Comportamiento de etiquetas en panel izquierdo
 def configurar_etiquetas_arrastrables():
     datos_arrastre = { # Diccionario para estado del arrastre
@@ -419,7 +400,7 @@ def configurar_etiquetas_arrastrables():
 
      # Maneja el evento de presión del ratón sobre las etiquetas (actualizar el diccionario según la etiqueta que se presione)
     def evento_presion_raton(evento):
-        global altura_panel_izquierdo, ratio_panel_izquierdo, extremo_etiqueta_1, extremo_etiqueta_2, margen_bool
+        global altura_panel_izquierdo, extremo_etiqueta_1, extremo_etiqueta_2, margen_bool
 
         if evento.button() == PySide6.QtCore.Qt.LeftButton: # Presionar botón izquierdo
             # Actualizar altura de panel izquierdo
@@ -509,50 +490,20 @@ def configurar_etiquetas_arrastrables():
 
 # Comportamiento de scroll
 def configurar_barra_desp(indice_val):
-    global altura_barra_desp, num_pags
+    global num_pags, frac_pag
 
     # Variables
     scrollbar_pressed = False
 
-    # Alto en píxeles de una página respecto a la altura de scrollbar
-    frac_pag = round(ui_val.visor_pdf.height() / num_pags[indice_val])
+    # Mostrar la barra scroll y handler
+    ui_val.panel_derecho.setVisible(True)
+    ui_val.etiqueta_scroll.setVisible(True)
 
-    # Asignar a barra en scroll la fracción de la altura de una sóla página y estilo
-    ui_val.barra_desp_vert.setStyleSheet(f"""
-        QScrollBar:vertical
-        {{
-            width: 16px;
-        }}
-
-        QScrollBar::handle:vertical
-        {{
-            background: #404244;
-            min-height: {frac_pag}px; /* Altura dinámica */
-        }}
-
-        QScrollBar::handle:vertical:hover
-        {{
-            background: #505254;
-        }}
-
-        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical
-        {{
-            background: #292a2b;
-        }}
-    """)
+    # Ajustar tamaño para handler de la barra de desplazamiento
+    ajustar_handler()
 
 
 
-
-
-
-
-
-
-
-#########################################################################################################################
-    # Mostrar la barra scroll
-    ui_val.barra_desp_vert.setVisible(True)
 
     # Al presionar sobre el scroll
     def scrollbar_press_event(evento):
@@ -576,7 +527,7 @@ def configurar_barra_desp(indice_val):
                 pag_actual[indice_val] = pos_pag
 
                 # Mover handler a posición
-                ui_val.barra_desp_vert.setValue(pos_pag * frac_pag)
+                #ui_val.panel_derecho.setValue(pos_pag * frac_pag)
 
             evento.accept() #
 
@@ -590,7 +541,7 @@ def configurar_barra_desp(indice_val):
             pos_cursor = evento.position().toPoint()
 
             # Mover la barra con el cursor
-            ui_val.barra_desp_vert.setValue(pos_cursor.y())
+            #ui_val.panel_derecho.setValue(pos_cursor.y())
 
             # Obtener número de página en base a altura del cursor
             pos_pag = int(pos_cursor.y() / frac_pag)
@@ -615,9 +566,28 @@ def configurar_barra_desp(indice_val):
             evento.accept() #
 
     # Asignar los eventos personalizados al scrollbar
-    ui_val.barra_desp_vert.mousePressEvent = scrollbar_press_event
-    ui_val.barra_desp_vert.mouseMoveEvent = scrollbar_move_event
-    ui_val.barra_desp_vert.mouseReleaseEvent = scrollbar_release_event
+    ui_val.panel_derecho.mousePressEvent = scrollbar_press_event
+    ui_val.panel_derecho.mouseMoveEvent = scrollbar_move_event
+    ui_val.panel_derecho.mouseReleaseEvent = scrollbar_release_event
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # FUNCIONES DE ACCIONES
 # Abre uno o varios archivos PDF mediante un cuadro de diálogo
