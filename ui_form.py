@@ -200,12 +200,12 @@ class Ui_Widget(object):
         # Marcadores en el panel izquierdo
         self.etiqueta_1 = PySide6.QtWidgets.QLabel(self.panel_izquierdo) # Primer marcador
         self.etiqueta_1.setGeometry(PySide6.QtCore.QRect(0, 0, 16, 6)) # Posición y tamaño (arriba)
-        self.etiqueta_1.setStyleSheet(u"background-color: #235c96; border: none;") # Estilo
+        self.etiqueta_1.setStyleSheet(u"background-color: #235c96;") # Estilo
         self.etiqueta_1.setCursor(PySide6.QtGui.QCursor(PySide6.QtCore.Qt.PointingHandCursor)) # Cursor personalizado
 
         self.etiqueta_2 = PySide6.QtWidgets.QLabel(self.panel_izquierdo) # Segundo marcador
         self.etiqueta_2.setGeometry(PySide6.QtCore.QRect(0, 6, 16, 6)) # Posición y tamaño (abajo)
-        self.etiqueta_2.setStyleSheet(u"background-color: #235c96; border: none;") # Estilo
+        self.etiqueta_2.setStyleSheet(u"background-color: #235c96;") # Estilo
         self.etiqueta_2.setCursor(PySide6.QtGui.QCursor(PySide6.QtCore.Qt.PointingHandCursor)) # Cursor personalizado
 
         self.layout_horizontal.addWidget(self.panel_izquierdo) # Añadir panel izquierdo al layout
@@ -216,7 +216,6 @@ class Ui_Widget(object):
             QGraphicsView
             {
                 background-color: #1f1f1f;
-                border: none;
             }
         """)
 
@@ -255,12 +254,12 @@ class Ui_Widget(object):
         # Áreas de selección de texto
         self.area_1 = PySide6.QtWidgets.QLabel(self.visor_pdf) # Primer área de selección
         self.area_1.setGeometry(PySide6.QtCore.QRect(0, 0, self.visor_pdf.width(), 6)) # Posición y tamaño (arriba)
-        self.area_1.setStyleSheet(u"background-color: rgba(0, 0, 0, 40%); border: none;") # Negro con transparencia
+        self.area_1.setStyleSheet(u"background-color: rgba(0, 0, 0, 40%);") # Negro con transparencia
         self.area_1.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Expanding, PySide6.QtWidgets.QSizePolicy.Fixed) # Expandido horizontalmente, altura fija
 
         self.area_2 = PySide6.QtWidgets.QLabel(self.visor_pdf) # Segunda área de selección
         self.area_2.setGeometry(PySide6.QtCore.QRect(0, 6, self.visor_pdf.width(), 6)) # Posición y tamaño (6px desde arriba)
-        self.area_2.setStyleSheet(u"background-color: rgba(0, 0, 0, 40%); border: none;") # Negro con transparencia
+        self.area_2.setStyleSheet(u"background-color: rgba(0, 0, 0, 40%);") # Negro con transparencia
         self.area_2.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Expanding, PySide6.QtWidgets.QSizePolicy.Fixed) # Expandido horizontalmente, altura fija
 
         # Accesos directos con teclado

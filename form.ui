@@ -108,13 +108,14 @@ QMenu::item
 {
     padding: 4px 24px 4px 12px;
     background-color: transparent;
+    border: 1px solid transparent;
 }
 
 QMenu::item:selected
 {
     background-color: #235c96;
     border: 1px solid #50a0f0;
-    padding-left: 11px;
+    padding: 4px 24px 4px 12px;
 }
 
 QMenu::indicator
@@ -136,7 +137,7 @@ QMenu::indicator:checked
        <string>Select</string>
       </property>
       <addaction name="accion_aplicar_margen_todas_pestanas"/>
-      <addaction name="actionPages_Range"/>
+      <addaction name="accion_rango_paginas"/>
      </widget>
      <widget class="QMenu" name="menu_ayuda">
       <property name="title">
@@ -205,132 +206,207 @@ QTabBar::close-button:hover
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="layout_horizontal">
-     <property name="spacing">
-      <number>0</number>
-     </property>
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
-      <number>0</number>
-     </property>
-     <item>
-      <widget class="QWidget" name="panel_izquierdo" native="true">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>16</width>
-         <height>16</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>16</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">background-color: #292a2b;</string>
-       </property>
-       <widget class="QLabel" name="etiqueta_1">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>16</width>
-          <height>6</height>
-         </rect>
+    <widget class="QWidget" name="widget_central" native="true">
+     <layout class="QHBoxLayout" name="layout_horizontal">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QWidget" name="panel_izquierdo" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <property name="cursor">
-         <cursorShape>PointingHandCursor</cursorShape>
+        <property name="minimumSize">
+         <size>
+          <width>16</width>
+          <height>16</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16</width>
+          <height>16777215</height>
+         </size>
         </property>
         <property name="styleSheet">
-         <string notr="true">background-color: #235c96; border: none;</string>
+         <string notr="true">background-color: #292a2b;</string>
         </property>
+        <widget class="QLabel" name="etiqueta_1">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>16</width>
+           <height>6</height>
+          </rect>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: #235c96; border: none;</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="etiqueta_2">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>6</y>
+           <width>16</width>
+           <height>6</height>
+          </rect>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: #235c96; border: none;</string>
+         </property>
+        </widget>
        </widget>
-       <widget class="QLabel" name="etiqueta_2">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>6</y>
-          <width>16</width>
-          <height>6</height>
-         </rect>
-        </property>
-        <property name="cursor">
-         <cursorShape>PointingHandCursor</cursorShape>
+      </item>
+      <item>
+       <widget class="QGraphicsView" name="visor_pdf">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
         <property name="styleSheet">
-         <string notr="true">background-color: #235c96; border: none;</string>
-        </property>
-       </widget>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGraphicsView" name="visor_pdf">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">QGraphicsView {
+         <string notr="true">QGraphicsView {
     background-color: #1f1f1f;
     border: none;
-}
-QScrollBar:vertical {
-    background: #292a2b;
-    width: 16px;
-    border: none;
-}
-QScrollBar::handle:vertical {
-    background: #404244;
-    min-height: 20px;
-    border-radius: 2px;
-}
-QScrollBar::handle:vertical:hover {
-    background: #505254;
-}
-QScrollBar::add-line:vertical,
-QScrollBar::sub-line:vertical {
-    background: none;
-    border: none;
-    height: 0px;
-}
-QScrollBar::add-page:vertical,
-QScrollBar::sub-page:vertical {
-    background: #292a2b;
 }</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignmentFlag::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-    </layout>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <widget class="QLabel" name="area_1">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>100</width>
+           <height>6</height>
+          </rect>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: rgba(0, 0, 0, 40%); border: none;</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="area_2">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>6</y>
+           <width>100</width>
+           <height>6</height>
+          </rect>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: rgba(0, 0, 0, 40%); border: none;</string>
+         </property>
+        </widget>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="panel_derecho" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>16</width>
+          <height>16</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: #292a2b;</string>
+        </property>
+        <widget class="QLabel" name="etiqueta_scroll">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>16</width>
+           <height>4</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QLabel
+{
+    background-color: #404244;
+}
+
+QLabel:hover
+{
+    background-color: #505254;
+}</string>
+         </property>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
   </layout>
   <action name="accion_abrir">
    <property name="text">
     <string>Open</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="accion_exportar">
    <property name="text">
     <string>Export</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="accion_aplicar_margen_todas_pestanas">
@@ -349,7 +425,7 @@ QScrollBar::sub-page:vertical {
     <string>About Exakova TextFlow</string>
    </property>
   </action>
-  <action name="actionPages_Range">
+  <action name="accion_rango_paginas">
    <property name="text">
     <string>Pages Range</string>
    </property>
