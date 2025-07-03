@@ -79,6 +79,7 @@ def mostrar_controles():
     ui_val.area_1.setGeometry(0, 0, ui_val.visor_pdf.width(), ui_val.etiqueta_1.y() + ui_val.etiqueta_1.height())
     ui_val.area_2.setGeometry(0, ui_val.etiqueta_2.y(), ui_val.visor_pdf.width(), ui_val.visor_pdf.height() - ui_val.etiqueta_2.y())
 
+# Ajutar tamaño de handler y salto de página en panel derecho
 def ajustar_handler():
     global frac_pag, altura_etiqueta_scroll, indice_actual
 
@@ -493,24 +494,21 @@ def configurar_barra_desp(indice_val):
     global num_pags, frac_pag
 
     # Variables
-    scrollbar_pressed = False
+    scrollbar_pressed = False # Estado inicial de variable (botón izquierdo no presionado)
 
     # Mostrar la barra scroll y handler
     ui_val.panel_derecho.setVisible(True)
     ui_val.etiqueta_scroll.setVisible(True)
 
-    # Ajustar tamaño para handler de la barra de desplazamiento
+    # Ajustar tamaño para handler de la barra de desplazamiento y salto de página
     ajustar_handler()
-
-
-
 
     # Al presionar sobre el scroll
     def scrollbar_press_event(evento):
         global pag_actual, paginas_contenedor
 
         if evento.button() == PySide6.QtCore.Qt.LeftButton: #
-            scrollbar_pressed = True #
+            scrollbar_pressed = True # Actualizar estado de variable
 
             # Obtener posición del cursor
             pos_cursor = evento.position().toPoint()
@@ -527,7 +525,7 @@ def configurar_barra_desp(indice_val):
                 pag_actual[indice_val] = pos_pag
 
                 # Mover handler a posición
-                #ui_val.panel_derecho.setValue(pos_pag * frac_pag)
+                ui_val.etiqueta_scroll.move(0, round(frac_pag * pag_actual[indice_actual] - 1))
 
             evento.accept() #
 
@@ -556,12 +554,22 @@ def configurar_barra_desp(indice_val):
 
             evento.accept() #
 
+
+
+
+
+
+
+
+
+
+
     # Soltar el botón izquierdo del mouse
     def scrollbar_release_event(evento):
         global scrollbar_pressed
 
         if evento.button() == PySide6.QtCore.Qt.LeftButton:
-            scrollbar_pressed = False
+            scrollbar_pressed = False # Actualizar estado de variable
 
             evento.accept() #
 
@@ -569,25 +577,6 @@ def configurar_barra_desp(indice_val):
     ui_val.panel_derecho.mousePressEvent = scrollbar_press_event
     ui_val.panel_derecho.mouseMoveEvent = scrollbar_move_event
     ui_val.panel_derecho.mouseReleaseEvent = scrollbar_release_event
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # FUNCIONES DE ACCIONES
 # Abre uno o varios archivos PDF mediante un cuadro de diálogo
