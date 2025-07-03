@@ -489,11 +489,11 @@ def configurar_etiquetas_arrastrables():
     ui_val.panel_izquierdo.mouseMoveEvent = evento_mover_raton # Asigna función para mover ratón
     ui_val.panel_izquierdo.mouseReleaseEvent = evento_soltar_raton # Asigna función para soltar ratón
 
-# Comportamiento de scroll
+# Comportamiento de scrollbar
 def configurar_barra_desp(indice_val):
     global num_pags, frac_pag
 
-    # Variables
+    # Diccionario para mantener el estado del scroll
     scrollbar_pressed = False # Estado inicial de variable (botón izquierdo no presionado)
 
     # Mostrar la barra scroll y handler
@@ -505,6 +505,7 @@ def configurar_barra_desp(indice_val):
 
     # Al presionar sobre el scroll
     def scrollbar_press_event(evento):
+        nonlocal scrollbar_pressed
         global pag_actual, paginas_contenedor
 
         if evento.button() == PySide6.QtCore.Qt.LeftButton: #
@@ -531,15 +532,13 @@ def configurar_barra_desp(indice_val):
 
     # Al mover la barra de scroll
     def scrollbar_move_event(evento):
-        global num_pags, pag_actual
+        nonlocal scrollbar_pressed
+        global pag_actual, paginas_contenedor
 
         # Se presiona el handler
         if scrollbar_pressed:
-            # Obtener posición del cursor
+            # Obtener posición del cursor continuamente (while implícito)
             pos_cursor = evento.position().toPoint()
-
-            # Mover la barra con el cursor
-            #ui_val.panel_derecho.setValue(pos_cursor.y())
 
             # Obtener número de página en base a altura del cursor
             pos_pag = int(pos_cursor.y() / frac_pag)
@@ -552,21 +551,14 @@ def configurar_barra_desp(indice_val):
                 # Actualizar página actual
                 pag_actual[indice_val] = pos_pag
 
+                # Mover handler a posición
+                ui_val.etiqueta_scroll.move(0, round(frac_pag * pag_actual[indice_actual] - 1))
+
             evento.accept() #
-
-
-
-
-
-
-
-
-
-
 
     # Soltar el botón izquierdo del mouse
     def scrollbar_release_event(evento):
-        global scrollbar_pressed
+        nonlocal scrollbar_pressed
 
         if evento.button() == PySide6.QtCore.Qt.LeftButton:
             scrollbar_pressed = False # Actualizar estado de variable
@@ -574,9 +566,9 @@ def configurar_barra_desp(indice_val):
             evento.accept() #
 
     # Asignar los eventos personalizados al scrollbar
-    ui_val.panel_derecho.mousePressEvent = scrollbar_press_event
-    ui_val.panel_derecho.mouseMoveEvent = scrollbar_move_event
-    ui_val.panel_derecho.mouseReleaseEvent = scrollbar_release_event
+    ui_val.panel_derecho.mousePressEvent = scrollbar_press_event #
+    ui_val.panel_derecho.mouseMoveEvent = scrollbar_move_event #
+    ui_val.panel_derecho.mouseReleaseEvent = scrollbar_release_event #
 
 # FUNCIONES DE ACCIONES
 # Abre uno o varios archivos PDF mediante un cuadro de diálogo
